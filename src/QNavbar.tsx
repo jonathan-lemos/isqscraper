@@ -16,26 +16,34 @@ export interface QNavbarProps {
 	href: string;
 }
 
-export const QNavbar: React.FC<QNavbarProps> = props => {
-	return (
-		<Navbar className="navbar navbar-expand-md navbar-light bg-light">
-			<a className="navbar-brand" href={props.href}>{props.brand}</a>
-			<button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent">
-				<span className="navbar-toggler-icon" />
-			</button>
-			<ul className="navbar-nav mr-auto">
-				{props.entries.map(e => {
-					return <QNavbarButton
-						href={e.href === null ? "#" : e.href}
-						identifier={e.id}
-						key={e.id}
-						type={e.href === null ? "disabled" : (props.active === e.id ? "active" : "inactive")}
-					/>;
-				})}
-			</ul>
-		</Navbar>
-	);
-};
+export default class QNavbar extends React.Component<QNavbarProps> {
+	public static defaultProps = {
+		active: null,
+		brand: "",
+		href: "#",
+	};
+
+	public render() {
+		return (
+			<Navbar className="navbar navbar-expand-md navbar-light bg-light">
+				<a className="navbar-brand" href={this.props.href}>{this.props.brand}</a>
+				<button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent">
+					<span className="navbar-toggler-icon" />
+				</button>
+				<ul className="navbar-nav mr-auto">
+					{this.props.entries.map(e => {
+						return <QNavbarButton
+							href={e.href === null ? "#" : e.href}
+							identifier={e.id}
+							key={e.id}
+							type={e.href === null ? "disabled" : (this.props.active === e.id ? "active" : "inactive")}
+						/>;
+					})}
+				</ul>
+			</Navbar>
+		);
+	}
+}
 
 QNavbar.defaultProps = {
 	active: null,

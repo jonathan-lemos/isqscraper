@@ -15,19 +15,14 @@ var gulp        = require("gulp");
 
 var tsProject = tsc.createProject("tsconfig.json");
 
-gulp.task("copy-mode-sicxe", function() {
-    return gulp.src("src/sicxe.js")
-        .pipe(gulp.dest("node_modules/brace/mode/sicxe"))
-})
-
-gulp.task("build-app", gulp.series("copy-mode-sicxe", function () {
+gulp.task("build-site", function () {
     return gulp.src([
         "src/**/*.ts",
         "src/**/*.tsx",
     ])
         .pipe(tsProject())
-        .js.pipe(gulp.dest("dist"));
-}));
+        .js.pipe(gulp.dest("out"));
+});
 
 gulp.task("lint", function () {
     return gulp.src([
@@ -42,16 +37,16 @@ gulp.task("lint", function () {
         .pipe(tslint.report());
 });
 
-gulp.task("bundle", function () {
-    var libraryName = "sicness";
-    var mainTsFilePath = "dist/app.js";
-    var outputFolder = "docs/";
+gulp.task("bundle-site", function () {
+    var libraryName = "isqscraper-site";
+    var mainTsFilePath = "out/main.js";
+    var outputFolder = "out/";
     var outputFileName = libraryName + ".min.js";
 
     var bundler = browserify({
         debug: true,
         standalone: libraryName
-    }).ignore(["jquery"]);
+    });
 
     return bundler.add(mainTsFilePath)
         .bundle()
@@ -59,7 +54,7 @@ gulp.task("bundle", function () {
         .pipe(buffer())
         .pipe(sourcemaps.init({ loadMaps: true }))
         .pipe(uglify())
-        .pipe(sourcemaps.write('./'))
+        .pipe(sourcemaps.write('out/'))
         .pipe(gulp.dest(outputFolder));
 });
 
