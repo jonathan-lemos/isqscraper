@@ -1,0 +1,26 @@
+{
+    "defaultSeverity": "error",
+    "extends": [
+        "tslint:recommended"
+    ],
+    "jsRules": {},
+	"rules": {
+		"indent": [
+			true,
+			"tabs",
+			4
+		],
+		"no-bitwise": false,
+		"one-line": false,
+		"max-classes-per-file": false,
+		"no-conditional-assignment": false,
+		"arrow-parens": [true, "ban-single-arg-parens"],
+		"no-string-literal": false,
+		"whitespace": [true, "check-branch", "check-decl", "check-operator", "check-module", "check-separator", "check-rest-spread", "check-type", "check-typecast", "check-type-operator", "check-preblock"],
+		"jsdoc-format": [true, "check-multiline-start"],
+		"no-console": false,
+		"interface-name": false,
+		"variable-name": [true, "allow-leading-underscore", "allow-pascal-case"]
+	},
+	"rulesDirectory": []
+}
