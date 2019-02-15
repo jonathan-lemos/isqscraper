@@ -13,7 +13,6 @@ export class QTable extends React.Component<QTableProps> {
 		titles: Object.freeze([]),
 	};
 
-
 	constructor(props: QTableProps) {
 		super(props);
 	}
