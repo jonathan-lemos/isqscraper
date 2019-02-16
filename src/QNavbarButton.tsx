@@ -11,19 +11,11 @@ export interface QNavbarButtonProps {
 }
 
 export class QNavbarButton extends React.Component<QNavbarButtonProps> {
-	public static defaultProps: QNavbarButtonProps = {
+	public static defaultProps = {
 		href: "#",
-		identifier: "Invalid",
 		title: "Title",
 		type: "inactive",
-	}
-
-	constructor(props: QNavbarButtonProps) {
-		if (props.identifier === "Invalid") {
-			throw new Error("All QNavbarButtons must have an identifier");
-		}
-		super(props);
-	}
+	};
 
 	public render() {
 		const liClass = "nav-item" + (this.props.type === "active" ? " active" : "");
@@ -34,6 +26,6 @@ export class QNavbarButton extends React.Component<QNavbarButtonProps> {
 					{this.props.title}
 				</a>
 			</li>
-		)
+		);
 	}
 }
