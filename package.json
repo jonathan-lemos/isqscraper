@@ -4,7 +4,8 @@
   "description": "UNF ISQ Scraper",
   "main": "src/server.ts",
   "scripts": {
-    "start": "npx ts-node src/server.ts",
+    "start": "node dist/backend-bundle.js",
+	"build": "npx webpack-cli",
     "test": "mocha --require ts-node/register tests/**/*.ts"
   },
   "repository": {

@@ -2,7 +2,10 @@ const path = require("path");
 
 module.exports = {
 	mode: "development",
-	entry: "./src/main.tsx",
+	entry: {
+		frontend: "./src/frontend/main.tsx",
+		backend: "./src/backend/main.ts",
+	},
 	devtool: "inline-source-map",
 	module: {
 		rules: [
@@ -13,11 +16,16 @@ module.exports = {
 			}
 		]
 	},
+	node: {
+		fs: "empty",
+		net: "empty",
+		tls: "empty",
+	},
 	resolve: {
 		extensions: [ ".tsx", ".ts", ".js" ]
 	},
 	output: {
-		filename: "bundle.js",
+		filename: "[name]-bundle.js",
 		path: path.resolve(__dirname, "dist")
 	}
 };
