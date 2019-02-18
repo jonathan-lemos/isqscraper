@@ -1,16 +1,6 @@
 import cheerio from "cheerio";
 import request from "request";
-
-export type QScraperEntryTerm = "Spring" | "Summer" | "Fall";
-
-export interface QScraperEntry {
-	coursecode: string;
-	crn: number;
-	isq: number;
-	professor: string;
-	term: QScraperEntryTerm;
-	year: number;
-}
+import { QScraperEntry, QScraperEntryTerm } from "../frontend/QScraper";
 
 export const scrapeCourseCode = async (coursecode: string) => new Promise<QScraperEntry[]>((resolve, reject) => {
 	const url = `https://banner.unf.edu/pls/nfpo/wksfwbs.p_course_isq_grade?pv_course_id=${coursecode}`;

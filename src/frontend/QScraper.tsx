@@ -1,7 +1,18 @@
+import $ from "jquery";
 import React from "react";
 import { Container } from "reactstrap";
-import { QScraperEntry, scrapeCourseCode } from "../backend/scraper";
 import { QTable } from "./QTable";
+
+export type QScraperEntryTerm = "Spring" | "Summer" | "Fall";
+
+export interface QScraperEntry {
+	coursecode: string;
+	crn: number;
+	isq: number;
+	professor: string;
+	term: QScraperEntryTerm;
+	year: number;
+}
 
 const QScraperTableTitles = Object.freeze([
 	"Course Code",
@@ -20,6 +31,22 @@ const makeQScraperTableEntry = (s: QScraperEntry): ReadonlyArray<string> => Obje
 	s.term,
 	s.year.toString(),
 ]);
+
+const scrapeCourseCode = async (coursecode: string) => new Promise<QScraperEntry[]>((resolve, reject) => {
+	$.ajax({
+		error: err => reject(err),
+		success: (result: string) => {
+			try {
+				resolve(JSON.parse(result) as QScraperEntry[]);
+				return;
+			}
+			catch (e) {
+				reject(e);
+			}
+		},
+		url: `localhost/scrape?coursecode=${coursecode}`,
+	});
+});
 
 export interface QScraperState {
 	currentEntries: QScraperEntry[];
