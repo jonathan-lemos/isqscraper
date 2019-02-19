@@ -36,6 +36,7 @@ export default class QNavbar extends React.Component<QNavbarProps> {
 							href={e.href === null ? "#" : e.href}
 							identifier={e.id}
 							key={e.id}
+							title={e.title}
 							type={e.href === null ? "disabled" : (this.props.active === e.id ? "active" : "inactive")}
 						/>;
 					})}

@@ -23,6 +23,11 @@ export default class QApp extends React.Component<QAppProps, QAppState> {
 		href: "#",
 	};
 
+	constructor(props: QAppProps) {
+		super(props);
+		this.state = {active: "Home"};
+	}
+
 	public render() {
 		return (
 			<div>

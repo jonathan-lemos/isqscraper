@@ -10,4 +10,4 @@ const byId = (id: string): HTMLElement  => {
 	return l;
 };
 
-ReactDOM.render(<QApp/>, byId("main"));
+ReactDOM.render(<QApp/>, byId("app"));

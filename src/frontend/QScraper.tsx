@@ -33,18 +33,22 @@ const makeQScraperTableEntry = (s: QScraperEntry): ReadonlyArray<string> => Obje
 ]);
 
 const scrapeCourseCode = async (coursecode: string) => new Promise<QScraperEntry[]>((resolve, reject) => {
+	const url = `${document.location.protocol}//${document.location.hostname}/scrape?coursecode=${coursecode}`;
 	$.ajax({
 		error: err => reject(err),
-		success: (result: string) => {
+		success: (result: QScraperEntry[]) => {
+			if (!Array.isArray(result)) {
+				reject(result);
+			}
 			try {
-				resolve(JSON.parse(result) as QScraperEntry[]);
+				resolve(result);
 				return;
 			}
 			catch (e) {
 				reject(e);
 			}
 		},
-		url: `localhost/scrape?coursecode=${coursecode}`,
+		url,
 	});
 });
 
@@ -54,8 +58,8 @@ export interface QScraperState {
 }
 
 export default class QScraper extends React.Component<{}, QScraperState> {
-	constructor() {
-		super({});
+	constructor(props: {}) {
+		super(props);
 		this.state = { currentEntries: [], currentQuery: "" };
 		this.onInputChange = this.onInputChange.bind(this);
 		this.scrapeQuery = this.scrapeQuery.bind(this);
@@ -80,19 +84,17 @@ export default class QScraper extends React.Component<{}, QScraperState> {
 	}
 
 	private onInputChange(s: React.ChangeEvent<HTMLInputElement>): void {
-		this.setState({ currentQuery: s.target.value });
-		this.scrapeQuery();
+		this.setState({ currentQuery: s.target.value }, this.scrapeQuery);
 	}
 
 	private async scrapeQuery(): Promise<void> {
-		let arr: QScraperEntry[];
 		try {
-			arr = await scrapeCourseCode(this.state.currentQuery);
+			const arr = await scrapeCourseCode(this.state.currentQuery);
+			this.setState({ currentEntries: arr });
 		}
 		catch (e) {
 			console.log(e);
 			return;
 		}
-		this.setState({ currentEntries: arr });
 	}
 }

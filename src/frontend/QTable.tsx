@@ -36,7 +36,7 @@ export class QTable extends React.Component<QTableProps> {
 						this.props.titles.length > 0 &&
 						<tr>
 							{this.props.titles.map(e => {
-								return <th scope="col">{e}</th>;
+								return <th key={e} scope="col">{e}</th>;
 							})}
 						</tr>
 					}
@@ -44,13 +44,13 @@ export class QTable extends React.Component<QTableProps> {
 				<tbody>
 					{this.props.entries.map((r, i) => {
 						return (
-							<tr>
+							<tr key={i}>
 								{
 									this.props.showIndex &&
-									<th scope="row">{i.toString()}</th>
+									<th key={i} scope="row">{i.toString()}</th>
 								}
 								{r.map(e => {
-									return <td>{e}</td>;
+									return <td key={e}>{e}</td>;
 								})}
 							</tr>
 						);

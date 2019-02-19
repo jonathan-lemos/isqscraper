@@ -5,9 +5,11 @@ import { scrapeCourseCode } from "./scraper";
 
 const port = 80;
 
+const siteBaseDir = path.join(__dirname, "../site");
+
 const server = express();
-server.use(express.static(path.normalize(path.join("..", "site"))));
-server.get("/", (req, res) => res.sendFile(path.normalize(path.join("..", "site"))));
+server.use(express.static(siteBaseDir));
+server.get("/", (req, res) => res.sendFile(path.join(siteBaseDir, "/index.html")));
 server.get("/scrape", async (req, res) => {
 	if (req.query.coursecode !== undefined) {
 		let arr: QScraperEntry[];

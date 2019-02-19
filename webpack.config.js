@@ -39,6 +39,7 @@ const backendConfig = {
 		fs: "empty",
 		net: "empty",
 		tls: "empty",
+		__dirname: false,
 	},
 	resolve: {
 		extensions: [ ".tsx", ".ts", ".js" ]
