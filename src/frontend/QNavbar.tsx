@@ -25,7 +25,7 @@ export default class QNavbar extends React.Component<QNavbarProps> {
 
 	public render() {
 		return (
-			<Navbar className="navbar navbar-expand-md navbar-light bg-light">
+			<Navbar className="navbar navbar-expand-md navbar-light bg-light mb-3">
 				<a className="navbar-brand" href={this.props.href}>{this.props.brand}</a>
 				<button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent">
 					<span className="navbar-toggler-icon" />

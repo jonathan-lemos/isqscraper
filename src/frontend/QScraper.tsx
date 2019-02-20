@@ -1,16 +1,12 @@
 import $ from "jquery";
 import React from "react";
-import { Container } from "reactstrap";
 import { QTable } from "./QTable";
-
-export type QScraperEntryTerm = "Spring" | "Summer" | "Fall";
-
 export interface QScraperEntry {
 	coursecode: string;
 	crn: number;
 	isq: number;
 	professor: string;
-	term: QScraperEntryTerm;
+	term: string;
 	year: number;
 }
 
@@ -67,19 +63,18 @@ export default class QScraper extends React.Component<{}, QScraperState> {
 
 	public render() {
 		return (
-			<Container>
-				<form className="form-inline my-2 my-lg-0 w-75 justify-content-center">
+			<div className="w-100 px-2 d-flex flex-column align-items-center">
+				<form className="form-inline my-2 w-75">
 					<input
-						className="form-control mr-sm-2 flex-grow-1"
+						className="form-control flex-grow-1 text-center"
 						type="search"
-						placeholder="Search"
+						placeholder="Type a course code"
 						onChange={this.onInputChange} />
-					<button className="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
 				</form>
 				<QTable
 					entries={this.state.currentEntries.map(e => makeQScraperTableEntry(e))}
 					titles={QScraperTableTitles} />
-			</Container>
+			</div>
 		);
 	}
 
@@ -94,6 +89,7 @@ export default class QScraper extends React.Component<{}, QScraperState> {
 		}
 		catch (e) {
 			console.log(e);
+			this.setState({ currentEntries: [] });
 			return;
 		}
 	}

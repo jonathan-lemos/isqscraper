@@ -3,6 +3,9 @@ import path from "path";
 import { QScraperEntry } from "../frontend/QScraper";
 import { scrapeCourseCode } from "./scraper";
 
+scrapeCourseCode("COP3503");
+
+/*
 const port = 80;
 
 const siteBaseDir = path.join(__dirname, "../site");
@@ -27,3 +30,4 @@ server.get("/scrape", async (req, res) => {
 	}
 });
 server.listen(port, () => console.log(`Express listening on port ${port}`));
+*/

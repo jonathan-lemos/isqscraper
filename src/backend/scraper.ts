@@ -1,7 +1,6 @@
 import cheerio from "cheerio";
 import request from "request";
-import { inspect } from "util";
-import { QScraperEntry, QScraperEntryTerm } from "../frontend/QScraper";
+import { QScraperEntry } from "../frontend/QScraper";
 
 export const scrapeCourseCode = async (coursecode: string) => new Promise<QScraperEntry[]>((resolve, reject) => {
 	const url = `https://banner.unf.edu/pls/nfpo/wksfwbs.p_course_isq_grade?pv_course_id=${coursecode}`;
@@ -35,7 +34,7 @@ export const scrapeCourseCode = async (coursecode: string) => new Promise<QScrap
 					crn: parseInt(nc[1].children[0].data as string, 10),
 					isq: parseFloat((nc[12].children[1].children[0].data as string).trim()),
 					professor: nc[2].children[0].data as string,
-					term: (nc[0].children[0].data as string).split(/\s+/)[0] as QScraperEntryTerm,
+					term: (nc[0].children[0].data as string).split(/\s+/)[0],
 					year: parseInt((nc[0].children[0].data as string).split(/\s+/)[1], 10),
 				};
 			});
