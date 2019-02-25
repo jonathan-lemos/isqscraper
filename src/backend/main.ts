@@ -1,9 +1,17 @@
 import express from "express";
 import path from "path";
-import { QScraperEntry } from "../frontend/QScraper";
 import { scrapeCourseCode } from "./scraper";
+import SqlServer from "./sql";
 
-scrapeCourseCode("COP3503");
+const main = async () => {
+	const sql = await SqlServer.create("localhost", "root", "toor");
+	const arr = await scrapeCourseCode("COP3503");
+	sql.insert(arr);
+	sql.delete(arr.slice(1));
+	sql.end();
+};
+
+main();
 
 /*
 const port = 80;

@@ -2,11 +2,11 @@
   "name": "isqscraper",
   "version": "1.0.0",
   "description": "UNF ISQ Scraper",
-  "main": "src/server.ts",
+  "main": "src/backend/main.ts",
   "scripts": {
     "start": "node dist/backend-bundle.js",
-    "build": "npx webpack-cli",
-    "test": "mocha --require ts-node/register tests/**/*.ts"
+    "build": "webpack-cli",
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -20,11 +20,14 @@
   "homepage": "https://github.com/jonathan-lemos/isqscraper#readme",
   "devDependencies": {
     "@types/chai": "^4.1.7",
+    "@types/jest": "^24.0.6",
     "@types/mocha": "^5.2.5",
     "chai": "^4.2.0",
     "eslint": "^5.14.0",
+    "jest": "^24.1.0",
     "mocha": "^5.2.0",
     "run-sequence": "^2.2.1",
+    "ts-jest": "^24.0.0",
     "ts-loader": "^5.3.3",
     "ts-node": "^7.0.1",
     "tslint": "^5.11.0",
@@ -34,6 +37,7 @@
   },
   "dependencies": {
     "@types/cheerio": "^0.22.10",
+    "@types/deep-equal": "^1.0.1",
     "@types/express": "^4.16.1",
     "@types/jquery": "^3.3.29",
     "@types/mysql": "^2.15.5",
@@ -43,6 +47,7 @@
     "@types/reactstrap": "^6.4.3",
     "@types/request": "^2.48.1",
     "cheerio": "^1.0.0-rc.2",
+    "deep-equal": "^1.0.1",
     "express": "^4.16.4",
     "jquery": "^3.3.1",
     "mysql": "^2.16.0",
