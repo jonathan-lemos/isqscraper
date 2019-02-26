@@ -29,6 +29,7 @@ describe("sets tests", () => {
 		];
 		const q = sets.dedupe(test1);
 		expect(sets.equivalent(sets.dedupe(test1), eq1)).toEqual(true);
+		expect(sets.equivalent(sets.dedupe(eq1), eq1)).toEqual(true);
 	});
 
 	it("checks if two arrays have the same elements", () => {

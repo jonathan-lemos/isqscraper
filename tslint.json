@@ -20,7 +20,8 @@
 		"jsdoc-format": [true, "check-multiline-start"],
 		"no-console": false,
 		"interface-name": false,
-		"variable-name": [true, "allow-leading-underscore", "allow-pascal-case"]
+		"variable-name": [true, "allow-leading-underscore", "allow-pascal-case"],
+		"max-line-length": [true, 180]
 	},
 	"rulesDirectory": []
 }

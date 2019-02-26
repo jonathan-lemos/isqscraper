@@ -38,32 +38,49 @@ export function dedupe<T>(arr: T[]): T[] {
 }
 
 export function intersection<T>(...arg: T[][]): T[] {
-	const freq = new Map<T, number>();
-	arg.forEach(x => dedupe(x).forEach(y => {
-		if (freq.get(y) === undefined) {
-			freq.set(y, 1);
+	if (arg.length === 0) {
+		return [];
+	}
+	const q =  dedupe(arg[0]).filter(e => {
+		for (let i = 1; i < arg.length; ++i) {
+			let found = false;
+			for (const f of arg[i]) {
+				if (deepEqual(e, f)) {
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				return false;
+			}
+			return true;
 		}
-		else {
-			freq.set(y, freq.get(y) as number + 1);
-		}
-	}));
-	return [...freq].reduce((a, k) => {
-		if (k[1] === arg.length) {
-			return a.concat(k[0]);
-		}
-		return a;
-	}, [] as T[]);
+	});
+	return q;
 }
 
 export function union<T>(...arg: T[][]): T[] {
 	return arg.reduce((a, k) => a.concat(dedupe(k)), []);
 }
 
-export function diff<T>(a: T[], b: T[]): {a: T[], b: T[]} {
-	const sa = new Set<T>(a);
-	const sb = new Set<T>(b);
-	return {
-		a: a.filter(x => !sb.has(x)),
-		b: b.filter(x => !sa.has(x)),
-	};
+export function diff<T>(a: T[], b: T[]): { a: T[], b: T[] } {
+	a = dedupe(a);
+	b = dedupe(b);
+	const aret = a.filter(elem => {
+		for (const c of b) {
+			if (deepEqual(elem, c)) {
+				return false;
+			}
+		}
+		return true;
+	});
+	const bret = b.filter(elem => {
+		for (const c of a) {
+			if (deepEqual(elem, c)) {
+				return false;
+			}
+		}
+		return true;
+	});
+	return {a: aret, b: bret}
 }

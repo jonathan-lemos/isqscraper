@@ -1,12 +1,4 @@
 import mysql from "mysql";
-import QScraper from "../frontend/QScraper";
-
-/*
-isqscraper entry:
-----------------------------------------
-|coursecode|crn|isq|professor|term|year|
-----------------------------------------
-*/
 
 export interface ScraperEntry {
 	coursecode: string;
@@ -17,14 +9,96 @@ export interface ScraperEntry {
 	year: number;
 }
 
-const ISQSCRAPER_ENTRIES_DB = "isqscraper";
+const isScraperEntry = (s: any): s is ScraperEntry => {
+	return Object.keys(s).includes("coursecode") &&
+	typeof s.coursecode === "string" &&
+	Object.keys(s).includes("crn") &&
+	typeof s.crn === "number" &&
+	Object.keys(s).includes("isq") &&
+	typeof s.isq === "number" &&
+	Object.keys(s).includes("professor") &&
+	typeof s.professor === "string" &&
+	Object.keys(s).includes("term") &&
+	typeof s.term === "string" &&
+	Object.keys(s).includes("year") &&
+	typeof s.year === "number";
+};
+
+export interface ProfessorEntry {
+	fname: string;
+	lname: string;
+	nnumber: string;
+}
+
+const isProfessorEntry = (s: any): s is ProfessorEntry => {
+	return Object.keys(s).includes("fname") &&
+	typeof s.fname === "string" &&
+	Object.keys(s).includes("lname") &&
+	typeof s.lname === "string" &&
+	Object.keys(s).includes("nnumber") &&
+	typeof s.nnumber === "string";
+};
+
+const ISQSCRAPER_DB = "isqscraper";
 const ISQSCRAPER_ENTRIES_TABLE = "isqscraper_entries";
 const ISQSCRAPER_PROF_TABLE = "isqscraper_profs";
 
-export default class SqlServer {
-	public static async create(user: string, password: string, host: string = "localhost", port: number = 3306)
-	: Promise<SqlServer> {
+/**
+ * Interface for creating a SQL connection:
+ *
+ * @param host     The host to connect to. By default this is "localhost"
+ * @param password The password of the user account to connect to.
+ * @param premade  If set to true, the database and tables are premade and don't need to be created.
+ *                 This allows you to restrict the permissions of the isqscraper SQL account.
+ *                 By default this is false.
+ * @param port     The port to connect to. By default this is 3306.
+ * @param user     The user to log into. By default this is "root".
+ */
+
+/**
+ * Class for interfacing with the backend MySQL server.
+ *
+ * Database: ${ISQSCRAPER_DB}
+ *     Tables: -------------------------------------
+ *             |    ${ISQSCRAPER_ENTRIES_TABLE}    |
+ *             -------------------------------------
+ *             | coursecode CHAR(16)     NOT NULL, |
+ *             | crn        INT          NOT NULL, |
+ *             | isq        DECIMAL(3,2) NOT NULL, |
+ *             | professor  VARCHAR(255) NOT NULL, |
+ *             | term       CHAR(16)     NOT NULL, |
+ *             | year       INT          NOT NULL, |
+ *             | PRIMARY KEY (crn, term, year),    |
+ *             | FOREIGN KEY (professor) REFERENCES ${ISQSCRAPER_PROF_TABLE} (lname)
+ *             -------------------------------------
+ *             |     ${ISQSCRAPER_PROF_TABLE}      |
+ *             -------------------------------------
+ *             | fname      VARCHAR(255) NOT NULL, |
+ *             | lname      VARCHAR(255) NOT NULL, |
+ *             | nnumber       CHAR(16)     NOT NULL, |
+ *             | PRIMARY KEY (lname, nnumber)         |
+ *             -------------------------------------
+ */
+export default class SqlServer{
+	/**
+	 * Creates an SqlServer instance.
+	 * This is the only way to initialize an SqlServer.
+	 * @param host     The host to connect to. By default this is "localhost"
+	 * @param password The password of the user account to connect to.
+	 * @param premade  If set to true, the database and tables are premade and don't need to be created.
+	 *                 In this case it is up to you to create the appropriate data
+	 *                 This allows you to restrict the permissions of the isqscraper SQL account.
+	 *                 By default this is false.
+	 * @param port     The port to connect to. By default this is 3306.
+	 * @param user     The user to log into. By default this is "root".
+	 *                 If "premade" is true, the SELECT, INSERT, UPDATE, and DELETE permissions are needed.
+	 *                 If "premade" is false, the CREATE TABLE, CREATE DATABASE and DROP DATABASE permissions are also needed.
+	 *
+	 * @return A Promise that will contain a new SqlServer or an error (string) detailing what happened.
+	 */
+	public static async create({ host = "localhost", password = "", premade = false, port = 3306, user = "root" }): Promise<SqlServer> {
 		return new Promise<SqlServer>(async (resolve, reject) => {
+			// connection without database (in case the db does not exist yet)
 			const con1 = mysql.createConnection({
 				host,
 				password,
@@ -32,14 +106,16 @@ export default class SqlServer {
 				user,
 			});
 
+			// connection with database
 			const con2 = mysql.createConnection({
-				database: ISQSCRAPER_ENTRIES_DB,
+				database: ISQSCRAPER_DB,
 				host,
 				password,
 				port,
 				user,
 			});
 
+			// connects to the sql server to no database
 			const iConnect = (): Promise<void> => new Promise<void>((res, rej) => {
 				con1.connect(err => {
 					if (err) {
@@ -51,8 +127,9 @@ export default class SqlServer {
 				});
 			});
 
+			// creates the database if it doesn't exist
 			const iCreateDb = (): Promise<void> => new Promise<void>((res, rej) => {
-				con1.query(`CREATE DATABASE IF NOT EXISTS ${ISQSCRAPER_ENTRIES_DB};`, err => {
+				con1.query(`CREATE DATABASE IF NOT EXISTS ${ISQSCRAPER_DB};`, err => {
 					if (err) {
 						rej(err.message);
 						return;
@@ -62,6 +139,7 @@ export default class SqlServer {
 				});
 			});
 
+			// connects to the newly made database
 			const iReconnect = (): Promise<void> => new Promise<void>((res, rej) => {
 				con2.connect(err => {
 					if (err) {
@@ -73,25 +151,32 @@ export default class SqlServer {
 				});
 			});
 
+			// creates the tables
 			const iCreateTable = (): Promise<void> => new Promise<void>((res, rej) => {
 				const sql =
-				`CREATE TABLE IF NOT EXISTS ${ISQSCRAPER_PROF_TABLE} (` +
-				"fname VARCHAR(255) NOT NULL," +
-				"lname VARCHAR(255) NOT NULL," +
-				"n_no CHAR(16) NOT NULL," +
-				"PRIMARY KEY (lname)" +
-				");" +
-				`CREATE TABLE IF NOT EXISTS ${ISQSCRAPER_ENTRIES_TABLE} (` +
-				"coursecode CHAR(16) NOT NULL," +
-				"crn INT NOT NULL," +
-				"isq DECIMAL(3,2) NOT NULL," +
-				"professor VARCHAR(255) NOT NULL," +
-				"term CHAR(16) NOT NULL," +
-				"year INT NOT NULL," +
-				"PRIMARY KEY (crn, term, year)," +
-				`FOREIGN KEY professor REFERENCES ${ISQSCRAPER_PROF_TABLE}(lname)` +
-				");";
+					`CREATE TABLE IF NOT EXISTS ${ISQSCRAPER_PROF_TABLE} (` +
+					"fname VARCHAR(255) NOT NULL," +
+					"lname VARCHAR(255) NOT NULL," +
+					"nnumber CHAR(16) NOT NULL," +
+					"PRIMARY KEY (lname, nnumber)" +
+					");";
+				const sql2 = `CREATE TABLE IF NOT EXISTS ${ISQSCRAPER_ENTRIES_TABLE} (` +
+					"coursecode CHAR(16) NOT NULL," +
+					"crn INT NOT NULL," +
+					"isq DECIMAL(3,2) NOT NULL," +
+					"professor VARCHAR(255) NOT NULL," +
+					"term CHAR(16) NOT NULL," +
+					"year INT NOT NULL," +
+					"PRIMARY KEY (crn, term, year)," +
+					`FOREIGN KEY (professor) REFERENCES ${ISQSCRAPER_PROF_TABLE} (lname)` +
+					");";
 				con2.query(sql, err => {
+					if (err) {
+						rej(err.message);
+						return;
+					}
+				});
+				con2.query(sql2, err => {
 					if (err) {
 						rej(err.message);
 						return;
@@ -102,11 +187,15 @@ export default class SqlServer {
 			});
 
 			try {
-				await iConnect();
-				await iCreateDb();
-				con1.end();
+				if (!premade) {
+					await iConnect();
+					await iCreateDb();
+					con1.end();
+				}
 				await iReconnect();
-				await iCreateTable();
+				if (!premade) {
+					await iCreateTable();
+				}
 			}
 			catch (e) {
 				reject(e);
@@ -124,75 +213,118 @@ export default class SqlServer {
 		this.con = con;
 	}
 
-	public end() {
-		this.con.end();
+	/**
+	 * Gets the course codes currently present in the table.
+	 */
+	public async allCourseCodes(): Promise<string[]> {
+		return new Promise<string[]>((resolve, reject) => {
+			const sql = `SELECT DISTINCT coursecode FROM ${ISQSCRAPER_ENTRIES_TABLE};`;
+			this.con.query(sql, (err, result) => {
+				if (err) {
+					reject(err.message);
+					return;
+				}
+				resolve(result.map((s: { coursecode: string }) => s.coursecode));
+				return;
+			});
+		});
 	}
 
-	public async getAll(): Promise<ScraperEntry[]> {
+	/**
+	 * Gets all the entries in the entry table.
+	 */
+	public async allEntries(): Promise<ScraperEntry[]> {
 		return new Promise<ScraperEntry[]>((resolve, reject) => {
 			const sql = `SELECT * FROM ${ISQSCRAPER_ENTRIES_TABLE}`;
 			this.con.query(sql, (err, results) => {
 				if (err) {
 					reject(err);
+					return;
 				}
 				resolve(results);
+				return;
 			});
 		});
 	}
 
-	public async insert(par: ScraperEntry | ScraperEntry[]): Promise<void> {
-		const isNotArray = (o: ScraperEntry | ScraperEntry[]): o is ScraperEntry => {
-			return Object.keys(o).includes("coursecode");
-		};
-
-		let arr: ScraperEntry[];
-		if (isNotArray(par)) {
-			arr = [par];
-		}
-		else {
-			arr = par;
-		}
-		return new Promise<void>((resolve, reject) => {
-			const sql = `INSERT IGNORE INTO ${ISQSCRAPER_ENTRIES_TABLE} VALUES ?;`;
-			const values = arr.map(s => [s.coursecode, s.crn, s.isq, s.professor, s.term, s.year]);
-			this.con.query(sql, [values], err => {
+	/**
+	 * Gets the professor last names in the professors table.
+	 */
+	public async allLastNames(): Promise<string[]> {
+		return new Promise<string[]>((resolve, reject) => {
+			const sql = `SELECT DISTINCT lname FROM ${ISQSCRAPER_PROF_TABLE};`;
+			this.con.query(sql, (err, result) => {
 				if (err) {
 					reject(err.message);
 					return;
 				}
+				resolve(result.map((s: { professor: string }) => s.professor));
+				return;
 			});
 		});
 	}
 
-	public async delete(par: ScraperEntry | ScraperEntry[]): Promise<void> {
-		const isNotArray = (o: ScraperEntry | ScraperEntry[]): o is ScraperEntry => {
-			return Object.keys(o).includes("coursecode");
-		};
+	/**
+	 * Gets all professors in the professor table.
+	 */
+	public async allProfessors(): Promise<ProfessorEntry[]> {
+		return new Promise<ProfessorEntry[]>((resolve, reject) => {
+			const sql = `SELECT * FROM ${ISQSCRAPER_PROF_TABLE}`;
+			this.con.query(sql, (err, results) => {
+				if (err) {
+					reject(err);
+					return;
+				}
+				resolve(results);
+				return;
+			});
+		});
+	}
 
-		let arr: ScraperEntry[];
-		if (isNotArray(par)) {
-			arr = [par];
+	/**
+	 * Deletes entries from the database.
+	 * @param par An entry or array of entries that should be deleted.
+	 */
+	public async delete(par: ScraperEntry | ScraperEntry[] | ProfessorEntry | ProfessorEntry[]): Promise<void> {
+		if (Array.isArray(par)) {
+			const isScraperArray = (arr: ScraperEntry[] | ProfessorEntry[]): arr is ScraperEntry[] => {
+				return isScraperEntry(arr[0]);
+			};
+			if (isScraperArray(par)) {
+				await this.deleteEntries(par);
+			}
+			else {
+				await this.deleteProfessors(par);
+			}
+		}
+		else if (isScraperEntry(par)) {
+			await this.deleteEntries([par]);
 		}
 		else {
-			arr = par;
+			await this.deleteProfessors([par]);
 		}
+	}
+
+	/**
+	 * Ends the connection to the SQL server.
+	 */
+	public async end(): Promise<void> {
 		return new Promise<void>((resolve, reject) => {
-			arr.forEach(e => {
-				const sql = `DELETE FROM ${ISQSCRAPER_ENTRIES_TABLE} ` +
-					"WHERE coursecode=? AND crn=? AND isq=? AND professor=? AND term=? AND YEAR=?;";
-				const values = arr.map(s => [s.coursecode, s.crn, s.isq, s.professor, s.term, s.year]);
-				this.con.query(sql, [e.coursecode, e.crn, e.isq, e.professor, e.term, e.year], err => {
-					if (err) {
-						reject(err.message);
-						return;
-					}
-					resolve();
+			this.con.end(err => {
+				if (err) {
+					reject(err.message);
 					return;
-				});
+				}
+				resolve();
+				return;
 			});
 		});
 	}
 
+	/**
+	 * Returns the entries that match a given course code.
+	 * @param coursecode The course code to match
+	 */
 	public async getByCourseCode(coursecode: string): Promise<ScraperEntry[]> {
 		return new Promise<ScraperEntry[]>((resolve, reject) => {
 			const sql = `SELECT * FROM ${ISQSCRAPER_ENTRIES_TABLE} WHERE coursecode=?;`;
@@ -208,7 +340,11 @@ export default class SqlServer {
 		});
 	}
 
-	public async getByProfessor(professor: string): Promise<ScraperEntry[]> {
+	/**
+	 * Returns the entries that match a given professor's last name.
+	 * @param professor The professor's last name to match.
+	 */
+	public async getByLastName(professor: string): Promise<ScraperEntry[]> {
 		return new Promise<ScraperEntry[]>((resolve, reject) => {
 			const sql = `SELECT * FROM ${ISQSCRAPER_ENTRIES_TABLE} WHERE professor=?;`;
 			const value = professor;
@@ -223,44 +359,128 @@ export default class SqlServer {
 		});
 	}
 
-	public async getCourseCodes(): Promise<string[]> {
-		return new Promise<string[]>((resolve, reject) => {
-			const sql = `SELECT DISTINCT coursecode FROM ${ISQSCRAPER_ENTRIES_TABLE};`;
-			this.con.query(sql, (err, result) => {
-				if (err) {
-					reject(err.message);
-					return;
-				}
-				resolve(result.map((s: { coursecode: string }) => s.coursecode));
-				return;
-			});
-		});
+	/**
+	 * Inserts entries into the entries table.
+	 * WARNING: This will silently fail if a professor's last name is not present in the profs table.
+	 * @param par An entry or array of entries that should be inserted.
+	 */
+	public async insert(par: ScraperEntry | ScraperEntry[] | ProfessorEntry | ProfessorEntry[]): Promise<void> {
+		if (Array.isArray(par)) {
+			const isScraperArray = (arr: ScraperEntry[] | ProfessorEntry[]): arr is ScraperEntry[] => {
+				return isScraperEntry(arr[0]);
+			};
+			if (isScraperArray(par)) {
+				await this.insertEntries(par);
+			}
+			else {
+				await this.insertProfessors(par);
+			}
+		}
+		else if (isScraperEntry(par)) {
+			await this.insertEntries([par]);
+		}
+		else {
+			await this.insertProfessors([par]);
+		}
 	}
 
-	public async getProfessors(): Promise<string[]> {
-		return new Promise<string[]>((resolve, reject) => {
-			const sql = `SELECT DISTINCT professor FROM ${ISQSCRAPER_ENTRIES_TABLE};`;
-			this.con.query(sql, (err, result) => {
-				if (err) {
-					reject(err.message);
-					return;
-				}
-				resolve(result.map((s: { professor: string }) => s.professor));
-				return;
-			});
-		});
-	}
-
-	public async getProfessorNNumber(lname: string): Promise<string> {
+	/**
+	 * Returns the n-number associated with a professor's last name.
+	 * @param lname The last name of the professor to search for.
+	 */
+	public async lnameToNNumber(lname: string): Promise<string> {
 		return new Promise<string>((resolve, reject) => {
-			const sql = `SELECT n_no FROM ${ISQSCRAPER_PROF_TABLE} WHERE lname=?`;
+			const sql = `SELECT nnumber FROM ${ISQSCRAPER_PROF_TABLE} WHERE lname=?`;
 			this.con.query(sql, (err, result) => {
 				if (err) {
 					reject(err.message);
 					return;
 				}
-				resolve(result);
+				resolve(result[0]);
 			});
+		});
+	}
+
+	/**
+	 * Deletes all data associated with isqscraper and logs out.
+	 */
+	public async nuke(): Promise<void> {
+		return new Promise<void>((resolve, reject) => {
+			const sql = `DROP DATABASE ${ISQSCRAPER_DB}`;
+			this.con.query(sql, err => {
+				if (err) {
+					reject(err);
+					return;
+				}
+			});
+			this.con.end(err => {
+				if (err) {
+					reject(err);
+					return;
+				}
+			});
+			resolve();
+			return;
+		});
+	}
+
+	private async deleteEntries(arr: ScraperEntry[]) {
+		return new Promise<void>((resolve, reject) => {
+			arr.forEach(e => {
+				const sql = `DELETE FROM ${ISQSCRAPER_ENTRIES_TABLE} ` +
+					"WHERE coursecode=? AND crn=? AND isq=? AND professor=? AND term=? AND YEAR=?;";
+				this.con.query(sql, [e.coursecode, e.crn, e.isq, e.professor, e.term, e.year], err => {
+					if (err) {
+						reject(err.message);
+						return;
+					}
+				});
+			});
+			resolve();
+		});
+	}
+
+	private async deleteProfessors(arr: ProfessorEntry[]) {
+		return new Promise<void>((resolve, reject) => {
+			arr.forEach(e => {
+				const sql = `DELETE FROM ${ISQSCRAPER_PROF_TABLE} ` +
+					"WHERE fname=? AND lname=? AND nnumber=?;";
+				this.con.query(sql, [e.fname, e.lname, e.nnumber], (err, results) => {
+					if (err) {
+						reject(err.message);
+						return;
+					}
+				});
+			});
+			resolve();
+		});
+	}
+
+	private async insertEntries(arr: ScraperEntry[]): Promise<void> {
+		return new Promise<void>((resolve, reject) => {
+			const sql = `INSERT IGNORE INTO ${ISQSCRAPER_ENTRIES_TABLE} VALUES ?;`;
+			const values = arr.map(s => [s.coursecode, s.crn, s.isq, s.professor, s.term, s.year]);
+			this.con.query(sql, [values], (err, results) => {
+				if (err) {
+					reject(err.message);
+					return;
+				}
+			});
+			resolve();
+		});
+	}
+
+	private async insertProfessors(arr: ProfessorEntry[]): Promise<void> {
+		return new Promise<void>((resolve, reject) => {
+			const sql = `INSERT IGNORE INTO ${ISQSCRAPER_PROF_TABLE} VALUES ?;`;
+			const values = arr.map(s => [s.fname, s.lname, s.nnumber]);
+			this.con.query(sql, [values], (err, results) => {
+				if (err) {
+					reject(err.message);
+					return;
+				}
+			});
+			resolve();
 		});
 	}
 }
