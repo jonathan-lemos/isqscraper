@@ -1,8 +1,21 @@
 import cheerio from "cheerio";
 import request from "request";
-import { ScraperEntry } from "./sql";
+import SqlServer, { ScraperEntry } from "./sql";
 
-export const scrapeCourseCode = async (coursecode: string) => new Promise<ScraperEntry[]>((resolve, reject) => {
+const scrapeCourseCode = (coursecode: string, con: SqlServer): {sql: Promise<ScraperEntry[]>, web: Promise<ScraperEntry[]>} => {
+	return {
+		sql: con.getByCourseCode(coursecode),
+		web: webScrapeCourseCode(coursecode),
+	};
+};
+
+const scrapeName = ({fname = "", lname = ""}: {fname: string, lname: string}): {sql: Promise<ScraperEntry[]>, web: Promise<ScraperEntry[]>} => {
+	if (fname === "" && lname === "") {
+		return {sql: Promise.resolve([]), web: Promise.resolve([])};
+	}
+}
+
+const webScrapeCourseCode = async (coursecode: string) => new Promise<ScraperEntry[]>((resolve, reject) => {
 	const url = `https://banner.unf.edu/pls/nfpo/wksfwbs.p_course_isq_grade?pv_course_id=${coursecode}`;
 	request(url, {}, (error, response, html) => {
 		if (error) {
@@ -46,7 +59,7 @@ export const scrapeCourseCode = async (coursecode: string) => new Promise<Scrape
 	});
 });
 
-export const scrapeNNumber = async (nNumber: string) => new Promise<ScraperEntry[]>((resolve, reject) => {
+const webScrapeNNumber = async (nNumber: string, professor: string) => new Promise<ScraperEntry[]>((resolve, reject) => {
 	const url = `https://banner.unf.edu/pls/nfpo/wksfwbs.p_course_isq_grade?pv_course_id=${coursecode}`;
 	request(url, {}, (error, response, html) => {
 		if (error) {

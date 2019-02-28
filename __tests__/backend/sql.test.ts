@@ -1,6 +1,11 @@
 import { equivalent } from "../../src/backend/sets";
 import SqlServer from "../../src/backend/sql";
 
+const sqlLoginInfo = {
+	password: "toor",
+	user: "root",
+};
+
 describe("SqlServer tests", async () => {
 	const profs = [
 		{ fname: "redferrari", lname: "sandy", nnumber: "n01234567" },
@@ -15,7 +20,7 @@ describe("SqlServer tests", async () => {
 	const entry = { coursecode: "COP9999", crn: 88888, isq: 5.00, professor: "eggman", term: "Fall", year: 2017 };
 
 	it("inserts entries", async () => {
-		const sql = await SqlServer.create({user: "root", password: "toor"});
+		const sql = await SqlServer.create(sqlLoginInfo);
 		const doThing = async () => {
 			sql.insert(profs);
 			sql.insert(arr);
@@ -30,7 +35,7 @@ describe("SqlServer tests", async () => {
 	});
 
 	it("deletes entries", async () => {
-		const sql = await SqlServer.create({user: "root", password: "toor"});
+		const sql = await SqlServer.create(sqlLoginInfo);
 		const doThing = async () => {
 			sql.insert(profs);
 			sql.insert(arr);
@@ -49,5 +54,20 @@ describe("SqlServer tests", async () => {
 		sql.nuke();
 		expect(equivalent(q, [entry])).toEqual(true);
 		expect(equivalent(r, profs.slice(1))).toEqual(true);
+	});
+
+	it("gets course codes", async () => {
+		const sql = await SqlServer.create(sqlLoginInfo);
+		const doThing = async () => {
+			sql.insert(profs);
+			sql.insert(arr);
+			sql.insert(entry);
+			sql.insert(entry);
+		};
+
+		await doThing();
+		const q = await sql.allCourseCodes();
+		sql.nuke();
+		expect(equivalent(q, ["COP3503", "COP9999"])).toEqual(true);
 	});
 });
