@@ -1,19 +1,11 @@
+import cheerio from "cheerio";
 import express from "express";
 import path from "path";
-import { scrapeCourseCode } from "./scraper";
-import SqlServer from "./sql";
+import request from "request";
+import { webScrapeCourseCode, webScrapeNNumber } from "./webscraper";
+import { ScraperEntry } from "./sql";
 
-const main = async () => {
-	const sql = await SqlServer.create("localhost", "root", "toor");
-	const arr = await scrapeCourseCode("COP3503");
-	sql.insert(arr);
-	sql.delete(arr.slice(1));
-	sql.end();
-};
 
-main();
-
-/*
 const port = 80;
 
 const siteBaseDir = path.join(__dirname, "../site");
@@ -23,9 +15,20 @@ server.use(express.static(siteBaseDir));
 server.get("/", (req, res) => res.sendFile(path.join(siteBaseDir, "/index.html")));
 server.get("/scrape", async (req, res) => {
 	if (req.query.coursecode !== undefined) {
-		let arr: QScraperEntry[];
+		let arr: ScraperEntry[];
 		try {
-			arr = await scrapeCourseCode(req.query.coursecode);
+			arr = await webScrapeCourseCode(req.query.coursecode);
+		}
+		catch (e) {
+			res.send(`Failed to scrape course code: "${e.message}"`);
+			return;
+		}
+		res.json(arr);
+	}
+	else if (req.query.nnumber !== undefined && req.query.lname !== undefined) {
+		let arr: ScraperEntry[];
+		try {
+			arr = await webScrapeNNumber(req.query.nnumber, req.query.lname);
 		}
 		catch (e) {
 			res.send(`Failed to scrape course code: "${e.message}"`);
@@ -34,8 +37,7 @@ server.get("/scrape", async (req, res) => {
 		res.json(arr);
 	}
 	else {
-		res.send(`Query params need to include "coursecode"`);
+		res.send(`Query params need to include "?coursecode=XXX0000" or "?nnumber=N00000000&lname=Example"`);
 	}
 });
 server.listen(port, () => console.log(`Express listening on port ${port}`));
-*/

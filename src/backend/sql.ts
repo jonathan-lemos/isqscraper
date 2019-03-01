@@ -375,6 +375,23 @@ export default class SqlServer {
 	}
 
 	/**
+	 * Returns the n-number associated with a professor's first name.
+	 * @param fname The last name of the professor to search for.
+	 */
+	public async fnameToNNumber(fname: string): Promise<string> {
+		return new Promise<string>((resolve, reject) => {
+			const sql = `SELECT nnumber FROM ${ISQSCRAPER_PROF_TABLE} WHERE fname=?`;
+			this.con.query(sql, [fname], (err, result) => {
+				if (err) {
+					reject(err.message);
+					return;
+				}
+				resolve(result[0]);
+			});
+		});
+	}
+
+	/**
 	 * Returns the entries that match a given course code.
 	 * @param coursecode The course code to match
 	 */
@@ -413,6 +430,10 @@ export default class SqlServer {
 		});
 	}
 
+	/**
+	 * Gets the scraper entries that match a professor's last name
+	 * @param lname The last name
+	 */
 	public async getByLastName(lname: string): Promise<ScraperEntry[]> {
 		return new Promise<ScraperEntry[]>((resolve, reject) => {
 			const sql = `SELECT * FROM ${ISQSCRAPER_ENTRIES_TABLE} WHERE lname=?;`;
@@ -428,8 +449,9 @@ export default class SqlServer {
 	}
 
 	/**
-	 * Returns the entries that match a given lname's last name.
-	 * @param lname The lname's last name to match.
+	 * Returns the entries that match a given name
+	 * @param fname The first name
+	 * @param lname The last name
 	 */
 	public async getByName(fname: string, lname: string): Promise<ScraperEntry[]> {
 		return new Promise<ScraperEntry[]>((resolve, reject) => {
@@ -439,6 +461,27 @@ export default class SqlServer {
 			`${ISQSCRAPER_ENTRIES_TABLE}.lname=${ISQSCRAPER_PROF_TABLE}.lname AND ` +
 			`${ISQSCRAPER_ENTRIES_TABLE}.lname=?`;
 			this.con.query(sql, [fname, lname], (err, result) => {
+				if (err) {
+					reject(err.message);
+					return;
+				}
+				resolve(result);
+				return;
+			});
+		});
+	}
+
+	/**
+	 * Returns the entries that match a given name
+	 * @param nnumber The first name
+	 */
+	public async getByNNumber(nnumber: string): Promise<ScraperEntry[]> {
+		return new Promise<ScraperEntry[]>((resolve, reject) => {
+			const sql = `SELECT ${ISQSCRAPER_ENTRIES_TABLE}.* ` +
+			`FROM ${ISQSCRAPER_ENTRIES_TABLE}, ${ISQSCRAPER_PROF_TABLE} ` +
+			`WHERE ${ISQSCRAPER_PROF_TABLE}.nnumber=? AND ` +
+			`${ISQSCRAPER_ENTRIES_TABLE}.lname=${ISQSCRAPER_PROF_TABLE}.lname;`;
+			this.con.query(sql, [nnumber], (err, result) => {
 				if (err) {
 					reject(err.message);
 					return;
@@ -475,13 +518,31 @@ export default class SqlServer {
 	}
 
 	/**
-	 * Returns the n-number associated with a lname's last name.
-	 * @param lname The last name of the lname to search for.
+	 * Returns the n-number associated with a professor's last name.
+	 * @param lname The last name of the professor to search for.
 	 */
 	public async lnameToNNumber(lname: string): Promise<string> {
 		return new Promise<string>((resolve, reject) => {
 			const sql = `SELECT nnumber FROM ${ISQSCRAPER_PROF_TABLE} WHERE lname=?`;
-			this.con.query(sql, (err, result) => {
+			this.con.query(sql, [lname], (err, result) => {
+				if (err) {
+					reject(err.message);
+					return;
+				}
+				resolve(result[0]);
+			});
+		});
+	}
+
+	/**
+	 * Returns the n-number associated with a professor's last name.
+	 * @param fname The first name of the professor to search for.
+	 * @param lname The last name of the professor to search for.
+	 */
+	public async nameToNNumber(fname: string, lname: string): Promise<string> {
+		return new Promise<string>((resolve, reject) => {
+			const sql = `SELECT nnumber FROM ${ISQSCRAPER_PROF_TABLE} WHERE fname=? AND lname=?`;
+			this.con.query(sql, [fname, lname], (err, result) => {
 				if (err) {
 					reject(err.message);
 					return;

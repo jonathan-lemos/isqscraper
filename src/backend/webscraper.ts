@@ -1,21 +1,8 @@
 import cheerio from "cheerio";
 import request from "request";
-import SqlServer, { ScraperEntry } from "./sql";
+import { ScraperEntry } from "./sql";
 
-const scrapeCourseCode = (coursecode: string, con: SqlServer): {sql: Promise<ScraperEntry[]>, web: Promise<ScraperEntry[]>} => {
-	return {
-		sql: con.getByCourseCode(coursecode),
-		web: webScrapeCourseCode(coursecode),
-	};
-};
-
-const scrapeName = ({fname = "", lname = ""}: {fname: string, lname: string}): {sql: Promise<ScraperEntry[]>, web: Promise<ScraperEntry[]>} => {
-	if (fname === "" && lname === "") {
-		return {sql: Promise.resolve([]), web: Promise.resolve([])};
-	}
-}
-
-const webScrapeCourseCode = async (coursecode: string) => new Promise<ScraperEntry[]>((resolve, reject) => {
+export const webScrapeCourseCode = async (coursecode: string) => new Promise<ScraperEntry[]>((resolve, reject) => {
 	const url = `https://banner.unf.edu/pls/nfpo/wksfwbs.p_course_isq_grade?pv_course_id=${coursecode}`;
 	request(url, {}, (error, response, html) => {
 		if (error) {
@@ -25,7 +12,7 @@ const webScrapeCourseCode = async (coursecode: string) => new Promise<ScraperEnt
 		const $ = cheerio.load(html);
 		try {
 			const elements = $("html > body > font > div.pagebodydiv > table.datadisplaytable > tbody")[3]
-			.children.filter(c => c.type === "tag" && c.name === "tr");
+				.children.filter(c => c.type === "tag" && c.name === "tr");
 			if (elements == null) {
 				throw new Error("Malformed webpage");
 			}
@@ -46,7 +33,7 @@ const webScrapeCourseCode = async (coursecode: string) => new Promise<ScraperEnt
 					coursecode,
 					crn: parseInt(nc[1].children[0].data as string, 10),
 					isq: parseFloat((nc[12].children[1].children[0].data as string).trim()),
-					professor: nc[2].children[0].data as string,
+					lname: nc[2].children[0].data as string,
 					term: (nc[0].children[0].data as string).split(/\s+/)[0],
 					year: parseInt((nc[0].children[0].data as string).split(/\s+/)[1], 10),
 				};
@@ -59,8 +46,8 @@ const webScrapeCourseCode = async (coursecode: string) => new Promise<ScraperEnt
 	});
 });
 
-const webScrapeNNumber = async (nNumber: string, professor: string) => new Promise<ScraperEntry[]>((resolve, reject) => {
-	const url = `https://banner.unf.edu/pls/nfpo/wksfwbs.p_course_isq_grade?pv_course_id=${coursecode}`;
+export const webScrapeNNumber = async (nNumber: string, lname: string) => new Promise<ScraperEntry[]>((resolve, reject) => {
+	const url = `https://banner.unf.edu/pls/nfpo/wksfwbs.p_instructor_isq_grade?pv_instructor=${nNumber.toUpperCase()}`;
 	request(url, {}, (error, response, html) => {
 		if (error) {
 			reject(error);
@@ -69,7 +56,7 @@ const webScrapeNNumber = async (nNumber: string, professor: string) => new Promi
 		const $ = cheerio.load(html);
 		try {
 			const elements = $("html > body > font > div.pagebodydiv > table.datadisplaytable > tbody")[3]
-			.children.filter(c => c.type === "tag" && c.name === "tr");
+				.children.filter(c => c.type === "tag" && c.name === "tr");
 			if (elements == null) {
 				throw new Error("Malformed webpage");
 			}
@@ -90,7 +77,7 @@ const webScrapeNNumber = async (nNumber: string, professor: string) => new Promi
 					coursecode: nc[2].children[0].data as string,
 					crn: parseInt(nc[1].children[0].data as string, 10),
 					isq: parseFloat((nc[12].children[1].children[0].data as string).trim()),
-					professor,
+					lname,
 					term: (nc[0].children[0].data as string).split(/\s+/)[0],
 					year: parseInt((nc[0].children[0].data as string).split(/\s+/)[1], 10),
 				};

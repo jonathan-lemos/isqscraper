@@ -1,6 +1,7 @@
-import $ from "jquery";
 import React from "react";
+import * as sets from "../backend/sets";
 import SqlServer, { ScraperEntry } from "../backend/sql";
+import { ajaxCourseCode, ajaxName, updateSql } from "./ajax";
 import { QTable } from "./QTable";
 
 const QScraperTableTitles = Object.freeze([
@@ -16,30 +17,10 @@ const makeQScraperTableEntry = (s: ScraperEntry): ReadonlyArray<string> => Objec
 	s.coursecode,
 	s.crn.toString(),
 	s.isq.toString(),
-	s.professor,
+	s.lname,
 	s.term,
 	s.year.toString(),
 ]);
-
-const scrapeCourseCode = async (coursecode: string) => new Promise<ScraperEntry[]>((resolve, reject) => {
-	const url = `${document.location.protocol}//${document.location.hostname}/scrape?coursecode=${coursecode}`;
-	$.ajax({
-		error: err => reject(err),
-		success: (result: ScraperEntry[]) => {
-			if (!Array.isArray(result)) {
-				reject(result);
-			}
-			try {
-				resolve(result);
-				return;
-			}
-			catch (e) {
-				reject(e);
-			}
-		},
-		url,
-	});
-});
 
 export interface QScraperProps {
 	sqlHost: string;
@@ -47,6 +28,7 @@ export interface QScraperProps {
 	sqlPort: number;
 	sqlUser: string;
 }
+
 export interface QScraperState {
 	currentEntries: ScraperEntry[];
 	currentQuery: string;
@@ -87,59 +69,49 @@ export default class QScraper extends React.Component<QScraperProps, QScraperSta
 	}
 
 	private onInputChange(s: React.ChangeEvent<HTMLInputElement>): void {
-		this.setState({ currentQuery: s.target.value }, this.scrapeQuery);
+		this.setState({ currentQuery: s.target.value }, this.updateTable);
 	}
 
-	private async scrapeCourseQuery(): Promise<void> {
-		let webArr: Set<ScraperEntry>;
-		let sqlArr: Set<ScraperEntry>;
-
-		const updateSqlDb = () => {
-			const diffAdd = new Set([...webArr].filter(x => !sqlArr.has(x)));
-			const diffRem = new Set([...sqlArr].filter(x => !webArr.has(x)));
-
-			if (this.sqlServer === null) {
-				return;
+	private getPromises(query: string, con: SqlServer): Array<Promise<ScraperEntry[]>> {
+			if (/[A-Z]{3}\d{4}/.test(query.toUpperCase())) {
+				const s = query.toUpperCase();
+				return [ajaxCourseCode(s), con.getByCourseCode(s)];
 			}
-			this.sqlServer.insert([...diffAdd]);
-			this.sqlServer.delete([...diffRem]);
-		};
-
-		try {
-			if (this.sqlServer !== null) {
-				this.sqlServer.getByCourseCode(this.state.currentQuery).then(val => {
-					sqlArr = new Set(val);
-					if (!webArr) {
-						this.setState({ currentEntries: val.sort((a, b) => b.year - a.year) });
-					}
-					else {
-						updateSqlDb();
-					}
-				});
+			if (query.split(/\s+/).length === 2) {
+				const a = query.split(/\s+/);
+				const b = { fname: a[0], lname: a[1] };
+				return [ajaxName(b, con), con.getByName(a[0], a[1])];
 			}
-			scrapeCourseCode(this.state.currentQuery).then(val => {
-				webArr = new Set(val);
-				this.setState({ currentEntries: val.sort((a, b) => b.year - a.year) });
-				if (sqlArr) {
-					updateSqlDb();
-				}
-			});
-		}
-		catch (e) {
+			else {
+				return [
+					ajaxName({ fname: query }, con),
+					ajaxName({ lname: query }, con),
+					con.getByFirstName(query),
+					con.getByLastName(query),
+				];
+			}
+	}
+
+	private async updateTable(): Promise<void> {
+		if (this.sqlServer === null) {
 			return;
 		}
-	}
-
-	private async scrapeQuery(): Promise<void> {
-
+		const p = this.getPromises(this.state.currentQuery, this.sqlServer);
+		let arr: ScraperEntry[] = [];
+		p.forEach(async e => {
+			arr = arr.concat(await e);
+		});
+		arr = sets.dedupe(arr);
+		this.setState({ currentEntries: arr });
+		updateSql(arr, this.sqlServer);
 	}
 
 	private async initSqlServer(): Promise<void> {
-		this.sqlServer = await SqlServer.create(
-			this.props.sqlUser,
-			this.props.sqlPassword,
-			this.props.sqlHost,
-			this.props.sqlPort,
-		);
+		this.sqlServer = await SqlServer.create({
+			host: this.props.sqlHost,
+			password: this.props.sqlPassword,
+			port: this.props.sqlPort,
+			user: this.props.sqlUser,
+		});
 	}
 }
