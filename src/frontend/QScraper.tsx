@@ -1,6 +1,4 @@
 import React from "react";
-import * as sets from "../backend/sets";
-import SqlServer, { ScraperEntry } from "../backend/sql";
 import { ajaxCourseCode, ajaxName, updateSql } from "./ajax";
 import { QTable } from "./QTable";
 

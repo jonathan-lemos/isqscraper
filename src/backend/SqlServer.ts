@@ -1,5 +1,4 @@
 import mysql from "mysql";
-import { string } from "prop-types";
 
 export interface ScraperEntry {
 	coursecode: string;
@@ -375,6 +374,23 @@ export default class SqlServer {
 	}
 
 	/**
+	 * Returns the last name(s) corresponding to a given first name
+	 * @param fname The first name
+	 */
+	public async fnameToLname(fname: string): Promise<string[]> {
+		return new Promise<string[]>((resolve, reject) => {
+			const sql = `SELECT lname FROM ${ISQSCRAPER_PROF_TABLE} WHERE fname=?`;
+			this.con.query(sql, [fname], (err, result) => {
+				if (err) {
+					reject(err.message);
+					return;
+				}
+				resolve(result);
+			});
+		});
+	}
+
+	/**
 	 * Returns the n-number associated with a professor's first name.
 	 * @param fname The last name of the professor to search for.
 	 */
@@ -520,6 +536,24 @@ export default class SqlServer {
 		else {
 			await this.insertProfessors([par]);
 		}
+	}
+
+	/**
+	 * Gets the first name(s) of a given last name
+	 * @param lname The last name
+	 */
+	public async lnameToFname(lname: string): Promise<string[]> {
+		return new Promise<string[]>((resolve, reject) => {
+			const sql = `SELECT fname FROM ${ISQSCRAPER_PROF_TABLE} WHERE lname=?`;
+			this.con.query(sql, [lname], (err, result) => {
+				if (err) {
+					reject(err.message);
+					return;
+				}
+				resolve(result);
+				return;
+			});
+		});
 	}
 
 	/**

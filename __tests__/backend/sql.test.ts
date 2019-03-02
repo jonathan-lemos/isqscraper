@@ -1,5 +1,5 @@
-import { dedupe, equivalent } from "../../src/backend/sets";
-import SqlServer from "../../src/backend/sql";
+import { dedupe, equivalent, intersection } from "../../src/backend/sets";
+import SqlServer from "../../src/backend/SqlServer";
 
 const sqlLoginInfo = {
 	password: "toor",
@@ -81,6 +81,34 @@ describe("SqlServer tests", async () => {
 		const g = await sql.allQueriedNames();
 		expect(equivalent(g, profs.slice(0, -1)));
 		sql.nuke();
+	});
+
+	it("selects", async () => {
+		const sql = await SqlServer.create(sqlLoginInfo);
+		const doThing = async () => {
+			sql.insert(profs);
+			sql.insert(arr);
+			sql.insert(entry);
+			sql.insert(entry);
+		};
+
+		await doThing();
+		arr.forEach(async x => {
+			const a = await sql.getByCourseCode(x.coursecode);
+			expect(intersection(a, [x])).toEqual([x]);
+		});
+		arr.forEach(async x => {
+			const a = await sql.getByFirstName((await sql.lnameToFname(x.lname))[0]);
+			expect(intersection(a, [x])).toEqual([x]);
+		});
+		arr.forEach(async x => {
+			const a = await sql.getByLastName(x.lname);
+			expect(intersection(a, [x])).toEqual([x]);
+		});
+		arr.forEach(async x => {
+			const a = await sql.getByName((await sql.lnameToFname(x.lname))[0], x.lname);
+			expect(intersection(a, [x])).toEqual([x]);
+		});
 	});
 
 	it("gets n numbers", async () => {

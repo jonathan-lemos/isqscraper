@@ -11,6 +11,10 @@ export interface QAppProps {
 	active: ActiveType;
 	brand: string;
 	href: string;
+	sqlHost: string;
+	sqlPassword: string;
+	sqlPort: number;
+	sqlUser: string;
 }
 
 export interface QAppState {
@@ -21,6 +25,10 @@ export default class QApp extends React.Component<QAppProps, QAppState> {
 		active: "Home",
 		brand: "ISQ Scraper",
 		href: "#",
+		sqlHost: "localhost",
+		sqlPassword: "",
+		sqlPort: 3306,
+		sqlUser: "root",
 	};
 
 	constructor(props: QAppProps) {
@@ -32,7 +40,7 @@ export default class QApp extends React.Component<QAppProps, QAppState> {
 		return (
 			<div>
 				<QNavbar active={this.state.active} brand={this.props.brand} entries={navbarEntries} />
-				<QScraper />
+				<QScraper sqlHost={this.props.sqlHost} sqlPassword={this.props.sqlPassword} sqlPort={this.props.sqlPort} sqlUser={this.props.sqlUser}/>
 			</div>
 		);
 	}

@@ -10,4 +10,4 @@ const byId = (id: string): HTMLElement  => {
 	return l;
 };
 
-ReactDOM.render(<QApp/>, byId("app"));
+ReactDOM.render(<QApp sqlHost="localhost" sqlPassword="toor" sqlUser="root"/>, byId("app"));
