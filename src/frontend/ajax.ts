@@ -72,6 +72,161 @@ export const ajaxNNumber = (nnumber: string, lname: string): { sql: Promise<Scra
 	}),
 });
 
+const ajaxFullName = (fname: string, lname: string): { sql: Promise<ScraperEntry[]>, web: Promise<ScraperEntry[]> } => {
+	return {
+		sql: new Promise<ScraperEntry[]>((resolve, reject) => {
+			const url = `${document.location.protocol}//${document.location.hostname}/api/getByName`;
+			$.ajax({
+				data: { fname, lname },
+				error: err => reject(err),
+				success: (result: ScraperEntry[]) => {
+					if (!Array.isArray(result)) {
+						reject(result);
+						return;
+					}
+					resolve(result);
+					return;
+				},
+				type: "POST",
+				url,
+			});
+		}),
+		web: new Promise<ScraperEntry[]>((resolve, reject) => {
+			const getNno = async (): Promise<string> => new Promise<string>((res, rej) => {
+				const urlNno = `${document.location.protocol}//${document.location.hostname}/api/nameToNNumber`;
+				$.ajax({
+					data: { fname, lname },
+					error: err => rej(err),
+					success: (result: string[]) => {
+						if (!Array.isArray(result)) {
+							rej(result);
+							return;
+						}
+						if (result.length === 0) {
+							res("");
+						}
+						res(result[0]);
+						return;
+					},
+					type: "POST",
+					url: urlNno,
+				});
+			});
+			return ajaxNNumber(await getNno(), lname).web;
+		}),
+	};
+};
+
+const ajaxLastName = (lname: string): { sql: Promise<ScraperEntry[]>, web: Promise<ScraperEntry[]> } => {
+	return {
+		sql: new Promise<ScraperEntry[]>((resolve, reject) => {
+			const url = `${document.location.protocol}//${document.location.hostname}/api/getByLastName`;
+			$.ajax({
+				data: lname,
+				error: err => reject(err),
+				success: (result: ScraperEntry[]) => {
+					if (!Array.isArray(result)) {
+						reject(result);
+						return;
+					}
+					resolve(result);
+					return;
+				},
+				type: "POST",
+				url,
+			});
+		}),
+		web: new Promise<ScraperEntry[]>((resolve, reject) => {
+			const getNno = async (): Promise<string> => new Promise<string>((res, rej) => {
+				const urlNno = `${document.location.protocol}//${document.location.hostname}/api/lnameToNNumber`;
+				$.ajax({
+					data: lname,
+					error: err => rej(err),
+					success: (result: string[]) => {
+						if (!Array.isArray(result)) {
+							rej(result);
+							return;
+						}
+						if (result.length === 0) {
+							res("");
+						}
+						res(result[0]);
+						return;
+					},
+					type: "POST",
+					url: urlNno,
+				});
+			});
+			return ajaxNNumber(await getNno(), lname).web;
+		}),
+	};
+};
+
+const ajaxFirstName = (fname: string): { sql: Promise<ScraperEntry[]>, web: Promise<ScraperEntry[]> } => {
+	return {
+		sql: new Promise<ScraperEntry[]>((resolve, reject) => {
+			const url = `${document.location.protocol}//${document.location.hostname}/api/getByFirstName`;
+			$.ajax({
+				data: fname,
+				error: err => reject(err),
+				success: (result: ScraperEntry[]) => {
+					if (!Array.isArray(result)) {
+						reject(result);
+						return;
+					}
+					resolve(result);
+					return;
+				},
+				type: "POST",
+				url,
+			});
+		}),
+		web: new Promise<ScraperEntry[]>((resolve, reject) => {
+			const getNno = async (): Promise<string> => new Promise<string>((res, rej) => {
+				const urlNno = `${document.location.protocol}//${document.location.hostname}/api/fnameToNNumber`;
+				$.ajax({
+					data: fname,
+					error: err => rej(err),
+					success: (result: string[]) => {
+						if (!Array.isArray(result)) {
+							rej(result);
+							return;
+						}
+						if (result.length === 0) {
+							res("");
+						}
+						res(result[0]);
+						return;
+					},
+					type: "POST",
+					url: urlNno,
+				});
+			});
+			const getLname = async (): Promise<string> => new Promise<string>((res, rej) => {
+				const urlNno = `${document.location.protocol}//${document.location.hostname}/api/fnameToLname`;
+				$.ajax({
+					data: fname,
+					error: err => rej(err),
+					success: (result: string[]) => {
+						if (!Array.isArray(result)) {
+							rej(result);
+							return;
+						}
+						if (result.length === 0) {
+							res("");
+						}
+						res(result[0]);
+						return;
+					},
+					type: "POST",
+					url: urlNno,
+				});
+			});
+			return ajaxNNumber(await getNno(), await getLname()).web;
+		}),
+	};
+};
+
 export const ajaxName = ({ fname = "", lname = "" }): { sql: Promise<ScraperEntry[]>, web: Promise<ScraperEntry[]> } => {
 	if (fname === "" && lname === "") {
 		return { sql: Promise.resolve([]), web: Promise.resolve([]) };
@@ -81,7 +236,7 @@ export const ajaxName = ({ fname = "", lname = "" }): { sql: Promise<ScraperEntr
 			sql: new Promise<ScraperEntry[]>((resolve, reject) => {
 				const url = `${document.location.protocol}//${document.location.hostname}/api/getByName`;
 				$.ajax({
-					data: {fname, lname},
+					data: { fname, lname },
 					error: err => reject(err),
 					success: (result: ScraperEntry[]) => {
 						if (!Array.isArray(result)) {
@@ -96,26 +251,29 @@ export const ajaxName = ({ fname = "", lname = "" }): { sql: Promise<ScraperEntr
 				});
 			}),
 			web: new Promise<ScraperEntry[]>((resolve, reject) => {
-				const getNno = async () => {
-					const url = `${document.location.protocol}//${document.location.hostname}/api/nameToNNumber`;
+				const getNno = async (): Promise<string> => new Promise<string>((res, rej) => {
+					const urlNno = `${document.location.protocol}//${document.location.hostname}/api/nameToNNumber`;
 					$.ajax({
 						data: { fname, lname },
-						error: err => reject(err),
-						success: (result: ScraperEntry[]) => {
+						error: err => rej(err),
+						success: (result: string[]) => {
 							if (!Array.isArray(result)) {
-								reject(result);
+								rej(result);
 								return;
 							}
-							resolve(result);
+							if (result.length === 0) {
+								res("");
+							}
+							res(result[0]);
 							return;
 						},
 						type: "POST",
-						url,
+						url: urlNno,
 					});
-				}
+				});
+				return ajaxNNumber(await getNno(), lname).web;
 			}),
 		};
-		return await ajaxNNumber(nNumber, lname);
 	}
 	else if (fname !== "") {
 		const nNumber = await con.fnameToNNumber(fname);
