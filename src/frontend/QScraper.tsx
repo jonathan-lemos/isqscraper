@@ -22,6 +22,26 @@ const makeQScraperTableEntry = (s: ScraperEntry): ReadonlyArray<string> => Objec
 	s.year.toString(),
 ]);
 
+const getPromises = (query: string, con: SqlServer): Array<Promise<ScraperEntry[]>> => {
+	if (/[A-Z]{3}\d{4}/.test(query.toUpperCase())) {
+		const s = query.toUpperCase();
+		return [ajaxCourseCode(s), con.getByCourseCode(s)];
+	}
+	if (query.split(/\s+/).length === 2) {
+		const a = query.split(/\s+/);
+		const b = { fname: a[0], lname: a[1] };
+		return [ajaxName(b, con), con.getByName(a[0], a[1])];
+	}
+	else {
+		return [
+			ajaxName({ fname: query }, con),
+			ajaxName({ lname: query }, con),
+			con.getByFirstName(query),
+			con.getByLastName(query),
+		];
+	}
+};
+
 export interface QScraperProps {
 	sqlHost: string;
 	sqlPassword: string;
@@ -45,9 +65,10 @@ export default class QScraper extends React.Component<QScraperProps, QScraperSta
 		super(props);
 		this.state = { currentEntries: [], currentQuery: "" };
 		this.onInputChange = this.onInputChange.bind(this);
-		this.scrapeQuery = this.scrapeQuery.bind(this);
-		this.sqlServer = null;
+		this.updateTable = this.updateTable.bind(this);
 		this.initSqlServer = this.initSqlServer.bind(this);
+
+		this.sqlServer = null;
 		this.initSqlServer();
 	}
 
@@ -72,31 +93,11 @@ export default class QScraper extends React.Component<QScraperProps, QScraperSta
 		this.setState({ currentQuery: s.target.value }, this.updateTable);
 	}
 
-	private getPromises(query: string, con: SqlServer): Array<Promise<ScraperEntry[]>> {
-			if (/[A-Z]{3}\d{4}/.test(query.toUpperCase())) {
-				const s = query.toUpperCase();
-				return [ajaxCourseCode(s), con.getByCourseCode(s)];
-			}
-			if (query.split(/\s+/).length === 2) {
-				const a = query.split(/\s+/);
-				const b = { fname: a[0], lname: a[1] };
-				return [ajaxName(b, con), con.getByName(a[0], a[1])];
-			}
-			else {
-				return [
-					ajaxName({ fname: query }, con),
-					ajaxName({ lname: query }, con),
-					con.getByFirstName(query),
-					con.getByLastName(query),
-				];
-			}
-	}
-
 	private async updateTable(): Promise<void> {
 		if (this.sqlServer === null) {
 			return;
 		}
-		const p = this.getPromises(this.state.currentQuery, this.sqlServer);
+		const p = getPromises(this.state.currentQuery, this.sqlServer);
 		let arr: ScraperEntry[] = [];
 		p.forEach(async e => {
 			arr = arr.concat(await e);

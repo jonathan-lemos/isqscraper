@@ -378,15 +378,20 @@ export default class SqlServer {
 	 * Returns the n-number associated with a professor's first name.
 	 * @param fname The last name of the professor to search for.
 	 */
-	public async fnameToNNumber(fname: string): Promise<string> {
-		return new Promise<string>((resolve, reject) => {
+	public async fnameToNNumber(fname: string): Promise<string | null> {
+		return new Promise<string | null>((resolve, reject) => {
 			const sql = `SELECT nnumber FROM ${ISQSCRAPER_PROF_TABLE} WHERE fname=?`;
 			this.con.query(sql, [fname], (err, result) => {
 				if (err) {
 					reject(err.message);
 					return;
 				}
+				if (result.length === 0) {
+					resolve(null);
+					return;
+				}
 				resolve(result[0]);
+				return;
 			});
 		});
 	}
@@ -521,15 +526,20 @@ export default class SqlServer {
 	 * Returns the n-number associated with a professor's last name.
 	 * @param lname The last name of the professor to search for.
 	 */
-	public async lnameToNNumber(lname: string): Promise<string> {
-		return new Promise<string>((resolve, reject) => {
+	public async lnameToNNumber(lname: string): Promise<string | null> {
+		return new Promise<string | null>((resolve, reject) => {
 			const sql = `SELECT nnumber FROM ${ISQSCRAPER_PROF_TABLE} WHERE lname=?`;
 			this.con.query(sql, [lname], (err, result) => {
 				if (err) {
 					reject(err.message);
 					return;
 				}
+				if (result.length === 0) {
+					resolve(null);
+					return;
+				}
 				resolve(result[0]);
+				return;
 			});
 		});
 	}
@@ -539,15 +549,20 @@ export default class SqlServer {
 	 * @param fname The first name of the professor to search for.
 	 * @param lname The last name of the professor to search for.
 	 */
-	public async nameToNNumber(fname: string, lname: string): Promise<string> {
-		return new Promise<string>((resolve, reject) => {
+	public async nameToNNumber(fname: string, lname: string): Promise<string | null> {
+		return new Promise<string | null>((resolve, reject) => {
 			const sql = `SELECT nnumber FROM ${ISQSCRAPER_PROF_TABLE} WHERE fname=? AND lname=?`;
 			this.con.query(sql, [fname, lname], (err, result) => {
 				if (err) {
 					reject(err.message);
 					return;
 				}
+				if (result.length === 0) {
+					resolve(null);
+					return;
+				}
 				resolve(result[0]);
+				return;
 			});
 		});
 	}
