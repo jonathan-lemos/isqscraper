@@ -117,10 +117,10 @@ describe("SqlServer tests", async () => {
 			const res1 = await sql.fnameToNNumber(x.fname);
 			const res2 = await sql.lnameToNNumber(x.lname);
 			const res3 = await sql.nameToNNumber(x.fname, x.lname);
-			expect(res1).toEqual(x.nnumber);
-			expect(res2).toEqual(x.nnumber);
-			expect(res3).toEqual(x.nnumber);
+			expect(res1).toEqual([x.nnumber]);
+			expect(res2).toEqual([x.nnumber]);
+			expect(res3).toEqual([x.nnumber]);
 		});
-		expect(await sql.lnameToNNumber("n00001111")).toEqual(null);
+		expect(await sql.lnameToNNumber("n00001111")).toEqual([]);
 	});
 });

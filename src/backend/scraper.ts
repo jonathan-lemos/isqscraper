@@ -14,7 +14,7 @@ export const webScrapeCourseCode = async (coursecode: string) => new Promise<Scr
 			const elements = $("html > body > font > div.pagebodydiv > table.datadisplaytable > tbody")[3]
 				.children.filter(c => c.type === "tag" && c.name === "tr");
 			if (elements == null) {
-				throw new Error("Malformed webpage");
+				reject("Malformed webpage");
 			}
 			/*
 			console.log(
@@ -58,7 +58,7 @@ export const webScrapeNNumber = async (nNumber: string, lname: string) => new Pr
 			const elements = $("html > body > font > div.pagebodydiv > table.datadisplaytable > tbody")[3]
 				.children.filter(c => c.type === "tag" && c.name === "tr");
 			if (elements == null) {
-				throw new Error("Malformed webpage");
+				reject("Malformed webpage");
 			}
 			/*
 			console.log(

@@ -4,7 +4,7 @@ import SqlServer, { ScraperEntry } from "../backend/SqlServer";
 
 export const ajaxCourseCode = (coursecode: string): { sql: Promise<ScraperEntry[]>, web: Promise<ScraperEntry[]> } => ({
 	sql: new Promise<ScraperEntry[]>((resolve, reject) => {
-		const url = `${document.location.protocol}//${document.location.hostname}/api/allEntries`;
+		const url = `${document.location.protocol}//${document.location.host}/api/allEntries`;
 		$.ajax({
 			data: coursecode,
 			error: err => reject(err),
@@ -21,7 +21,7 @@ export const ajaxCourseCode = (coursecode: string): { sql: Promise<ScraperEntry[
 		});
 	}),
 	web: new Promise<ScraperEntry[]>((resolve, reject) => {
-		const url = `${document.location.protocol}//${document.location.hostname}/api/scrape?coursecode=${coursecode}`;
+		const url = `${document.location.protocol}//${document.location.host}/api/scrape?coursecode=${coursecode}`;
 		$.ajax({
 			error: err => reject(err),
 			success: (result: ScraperEntry[]) => {
@@ -91,7 +91,7 @@ const ajaxFullName = (fname: string, lname: string): { sql: Promise<ScraperEntry
 				url,
 			});
 		}),
-		web: new Promise<ScraperEntry[]>((resolve, reject) => {
+		web: new Promise<ScraperEntry[]>(async (resolve, reject) => {
 			const getNno = async (): Promise<string> => new Promise<string>((res, rej) => {
 				const urlNno = `${document.location.protocol}//${document.location.hostname}/api/nameToNNumber`;
 				$.ajax({
@@ -136,7 +136,7 @@ const ajaxLastName = (lname: string): { sql: Promise<ScraperEntry[]>, web: Promi
 				url,
 			});
 		}),
-		web: new Promise<ScraperEntry[]>((resolve, reject) => {
+		web: new Promise<ScraperEntry[]>(async (resolve, reject) => {
 			const getNno = async (): Promise<string> => new Promise<string>((res, rej) => {
 				const urlNno = `${document.location.protocol}//${document.location.hostname}/api/lnameToNNumber`;
 				$.ajax({
@@ -181,7 +181,7 @@ const ajaxFirstName = (fname: string): { sql: Promise<ScraperEntry[]>, web: Prom
 				url,
 			});
 		}),
-		web: new Promise<ScraperEntry[]>((resolve, reject) => {
+		web: new Promise<ScraperEntry[]>(async (resolve, reject) => {
 			const getNno = async (): Promise<string> => new Promise<string>((res, rej) => {
 				const urlNno = `${document.location.protocol}//${document.location.hostname}/api/fnameToNNumber`;
 				$.ajax({
@@ -222,7 +222,7 @@ const ajaxFirstName = (fname: string): { sql: Promise<ScraperEntry[]>, web: Prom
 					url: urlNno,
 				});
 			});
-			return ajaxNNumber(await getNno(), await getLname()).web;
+			resolve(await ajaxNNumber(await getNno(), await getLname()).web);
 		}),
 	};
 };
@@ -232,66 +232,15 @@ export const ajaxName = ({ fname = "", lname = "" }): { sql: Promise<ScraperEntr
 		return { sql: Promise.resolve([]), web: Promise.resolve([]) };
 	}
 	else if (fname !== "" && lname !== "") {
-		return {
-			sql: new Promise<ScraperEntry[]>((resolve, reject) => {
-				const url = `${document.location.protocol}//${document.location.hostname}/api/getByName`;
-				$.ajax({
-					data: { fname, lname },
-					error: err => reject(err),
-					success: (result: ScraperEntry[]) => {
-						if (!Array.isArray(result)) {
-							reject(result);
-							return;
-						}
-						resolve(result);
-						return;
-					},
-					type: "POST",
-					url,
-				});
-			}),
-			web: new Promise<ScraperEntry[]>((resolve, reject) => {
-				const getNno = async (): Promise<string> => new Promise<string>((res, rej) => {
-					const urlNno = `${document.location.protocol}//${document.location.hostname}/api/nameToNNumber`;
-					$.ajax({
-						data: { fname, lname },
-						error: err => rej(err),
-						success: (result: string[]) => {
-							if (!Array.isArray(result)) {
-								rej(result);
-								return;
-							}
-							if (result.length === 0) {
-								res("");
-							}
-							res(result[0]);
-							return;
-						},
-						type: "POST",
-						url: urlNno,
-					});
-				});
-				return ajaxNNumber(await getNno(), lname).web;
-			}),
-		};
+		return ajaxFullName(fname, lname);
 	}
 	else if (fname !== "") {
-		const nNumber = await con.fnameToNNumber(fname);
-		if (nNumber === null) {
-			resolve([]);
-			return;
-		}
-		return await ajaxNNumber(nNumber, lname);
+		return ajaxFirstName(fname);
 	}
 	else {
-		const nNumber = await con.lnameToNNumber(fname);
-		if (nNumber === null) {
-			resolve([]);
-			return;
-		}
-		return await ajaxNNumber(nNumber, lname);
+		return ajaxLastName(lname);
 	}
-});
+};
 
 export const updateSql = async (results: ScraperEntry[], con: SqlServer): Promise<void> => {
 	const d = sets.diff(results, await con.allEntries());
