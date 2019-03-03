@@ -2,7 +2,9 @@ import React from "react";
 import { dedupe } from "../backend/sets";
 import { ScraperEntry } from "../backend/SqlServer";
 import { ajaxCourseCode, ajaxName, updateSql } from "./ajax";
-import { QTable } from "./QTable";
+import { ActiveType } from "./QApp";
+import QNavbar, { QNavbarEntry } from "./QNavbar";
+import QTable from "./QTable";
 
 const QScraperTableTitles = Object.freeze([
 	"Course Code",
@@ -41,6 +43,10 @@ const getPromises = (query: string): Array<Promise<ScraperEntry[]>> => {
 };
 
 export interface QScraperProps {
+	active: ActiveType | null;
+	brand: string;
+	entries: QNavbarEntry[];
+	href: string;
 	sqlHost: string;
 	sqlPassword: string;
 	sqlPort: number;
@@ -54,6 +60,9 @@ export interface QScraperState {
 
 export default class QScraper extends React.Component<QScraperProps, QScraperState> {
 	public static defaultProps = {
+		active: null,
+		brand: "",
+		href: "#",
 		sqlPort: 3306,
 	};
 
@@ -67,13 +76,12 @@ export default class QScraper extends React.Component<QScraperProps, QScraperSta
 	public render() {
 		return (
 			<div className="w-100 px-2 d-flex flex-column align-items-center">
-				<form className="form-inline my-2 w-75">
-					<input
-						className="form-control flex-grow-1 text-center"
-						type="search"
-						placeholder="Type a course code"
-						onChange={this.onInputChange} />
-				</form>
+				<QNavbar
+					active={this.props.active}
+					brand={this.props.brand}
+					entries={this.props.entries}
+					href={this.props.href}
+					onChangeInput={this.onInputChange} />
 				<QTable
 					entries={this.state.currentEntries.map(e => makeQScraperTableEntry(e))}
 					titles={QScraperTableTitles} />
@@ -81,8 +89,8 @@ export default class QScraper extends React.Component<QScraperProps, QScraperSta
 		);
 	}
 
-	private onInputChange(s: React.ChangeEvent<HTMLInputElement>): void {
-		this.setState({ currentQuery: s.target.value }, this.updateTable);
+	private onInputChange(s: string): void {
+		this.setState({ currentQuery: s }, this.updateTable);
 	}
 
 	private async updateTable(): Promise<void> {

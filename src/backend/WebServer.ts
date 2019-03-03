@@ -1,3 +1,4 @@
+import cors from "cors";
 import express from "express";
 import http from "http";
 import path from "path";
@@ -52,15 +53,16 @@ export default class WebServer {
 		ret.web.get("/api/allProfessors", async (req, res) => res.json(await ret.con.allProfessors()));
 		ret.web.get("/api/allQueriedCourseCodes", async (req, res) => res.json(await ret.con.allQueriedCourseCodes()));
 		ret.web.get("/api/allQueriedNames", async (req, res) => res.json(await ret.con.allQueriedNames()));
-		ret.web.post("/api/fnameToLname", async (req, res) => res.json(await ret.con.fnameToLname(req.body)));
-		ret.web.post("/api/fnameToNNumber", async (req, res) => res.json(await ret.con.fnameToNNumber(req.body)));
-		ret.web.post("/api/getByCourseCode", async (req, res) => res.json(await ret.con.getByCourseCode(req.body)));
-		ret.web.post("/api/getByFirstName", async (req, res) => res.json(await ret.con.getByFirstName(req.body)));
-		ret.web.post("/api/getByLastName", async (req, res) => res.json(await ret.con.getByLastName(req.body)));
+		ret.web.post("/api/fnameToLname", async (req, res) => res.json(await ret.con.fnameToLname(req.body.str)));
+		ret.web.post("/api/fnameToNNumber", async (req, res) => res.json(await ret.con.fnameToNNumber(req.body.str)));
+		ret.web.post("/api/getByCourseCode", async (req, res) => res.json(await ret.con.getByCourseCode(req.body.str)));
+		ret.web.post("/api/getByFirstName", async (req, res) => res.json(await ret.con.getByFirstName(req.body.str)));
+		ret.web.post("/api/getByLastName", async (req, res) => res.json(await ret.con.getByLastName(req.body.str)));
 		ret.web.post("/api/getByName", async (req, res) => res.json(await ret.con.getByName(req.body.fname, req.body.lname)));
-		ret.web.post("/api/getByNNumber", async (req, res) => res.json(await ret.con.getByNNumber(req.body)));
-		ret.web.post("/api/lnameToFname", async (req, res) => res.json(await ret.con.lnameToFname(req.body)));
-		ret.web.post("/api/lnameToNNumber", async (req, res) => res.json(await ret.con.lnameToNNumber(req.body)));
+		ret.web.post("/api/getByNNumber", async (req, res) => res.json(await ret.con.getByNNumber(req.body.str)));
+		ret.web.post("/api/lnameToFname", async (req, res) => res.json(await ret.con.lnameToFname(req.body.str)));
+		ret.web.post("/api/lnameToNNumber", async (req, res) =>
+		res.json(await ret.con.lnameToNNumber(req.body.str)));
 		ret.web.post("/api/nameToNNumber", async (req, res) => res.json(await ret.con.nameToNNumber(req.body.fname, req.body.lname)));
 		return ret;
 	}
@@ -77,6 +79,7 @@ export default class WebServer {
 		this.web = express();
 		this.web.use(express.static(baseDir));
 		this.web.use(express.json());
+		this.web.use(cors());
 		this.web.get("/", (req, res) => res.sendFile(path.join(baseDir, defaultFile)));
 	}
 

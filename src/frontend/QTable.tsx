@@ -6,7 +6,7 @@ export interface QTableProps {
 	titles: ReadonlyArray<string>;
 }
 
-export class QTable extends React.Component<QTableProps> {
+export default class QTable extends React.Component<QTableProps> {
 	public static defaultProps: QTableProps = {
 		entries: Object.freeze([]),
 		showIndex: false,

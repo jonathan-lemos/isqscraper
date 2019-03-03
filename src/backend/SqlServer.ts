@@ -40,8 +40,8 @@ const isProfessorEntry = (s: any): s is ProfessorEntry => {
 };
 
 const ISQSCRAPER_DB = "isqscraper";
-const ISQSCRAPER_ENTRIES_TABLE = "isqscraper_entries";
-const ISQSCRAPER_PROF_TABLE = "isqscraper_profs";
+const ISQSCRAPER_ENTRIES_TABLE = "entries";
+const ISQSCRAPER_PROF_TABLE = "profs";
 
 /**
  * Interface for creating a SQL connection:
@@ -535,6 +535,53 @@ export default class SqlServer {
 	}
 
 	/**
+	 * Reads professors from a csv file
+	 * @param csv The csv split by newline
+	 */
+	public async insertProfessorsFromCsv(csv: string[]): Promise<void> {
+		return new Promise<void>(async (resolve, reject) => {
+			if (csv.length < 1) {
+				reject("csv must have at least two lines");
+				return;
+			}
+			const titles = csv[0].split(/\s*,\s*/);
+			if (titles.length !== 3 ||
+				titles[0] !== "nnumber" ||
+				titles[1] !== "fname" ||
+				titles[2] !== "lname") {
+				reject(`First line of csv must be "nnumber,fname,lname"`);
+				return;
+			}
+
+			const arr = csv.slice(1).filter(s => s.trim() !== "").map((s, i) => {
+				const q = s.split(/\s*,\s*/);
+				if (q.length !== 3) {
+					reject(`Each line of the csv must have 3 entries (found ${q.length})`);
+					return {nnumber: "", fname: "", lname: ""};
+				}
+				return {nnumber: q[0], fname: q[1], lname: q[2]};
+			});
+
+			for (const s of arr) {
+				if (s.nnumber === "") {
+					reject(`Each line of the csv must have 3 entries`);
+					return;
+				}
+			}
+
+			try {
+				await this.insert(arr);
+				resolve();
+				return;
+			}
+			catch (e) {
+				reject(e.message);
+				return;
+			}
+		});
+	}
+
+	/**
 	 * Gets the first name(s) of a given last name
 	 * @param lname The last name
 	 */
@@ -546,7 +593,7 @@ export default class SqlServer {
 					reject(err.message);
 					return;
 				}
-				resolve(result.map((x: {fname: string}) => x.fname));
+				resolve(result.map((x: { fname: string }) => x.fname));
 				return;
 			});
 		});
@@ -564,7 +611,7 @@ export default class SqlServer {
 					reject(err.message);
 					return;
 				}
-				resolve(result.map((x: {nnumber: string}) => x.nnumber));
+				resolve(result.map((x: { nnumber: string }) => x.nnumber));
 				return;
 			});
 		});
@@ -583,7 +630,7 @@ export default class SqlServer {
 					reject(err.message);
 					return;
 				}
-				resolve(result.map((x: {nnumber: string}) => x.nnumber));
+				resolve(result.map((x: { nnumber: string }) => x.nnumber));
 				return;
 			});
 		});

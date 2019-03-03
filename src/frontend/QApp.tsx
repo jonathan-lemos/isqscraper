@@ -1,5 +1,4 @@
 import React from "react";
-import QNavbar from "./QNavbar";
 import QScraper from "./QScraper";
 
 export type ActiveType = "Home";
@@ -38,10 +37,14 @@ export default class QApp extends React.Component<QAppProps, QAppState> {
 
 	public render() {
 		return (
-			<div>
-				<QNavbar active={this.state.active} brand={this.props.brand} entries={navbarEntries} />
-				<QScraper sqlHost={this.props.sqlHost} sqlPassword={this.props.sqlPassword} sqlPort={this.props.sqlPort} sqlUser={this.props.sqlUser}/>
-			</div>
+				<QScraper
+					active={this.state.active}
+					brand={this.props.brand}
+					entries={navbarEntries}
+					sqlHost={this.props.sqlHost}
+					sqlPassword={this.props.sqlPassword}
+					sqlPort={this.props.sqlPort}
+					sqlUser={this.props.sqlUser}/>
 		);
 	}
 }
