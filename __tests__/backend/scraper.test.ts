@@ -5,7 +5,7 @@ import WebServer from "../../src/backend/WebServer";
 describe("scraper tests", async () => {
 	it("scrapes course code correctly", async () => {
 		const s = await SqlServer.create({ user: "root", password: "toor" });
-		const w = WebServer.makeAppServer(s, 3000);
+		const w = new WebServer(s, 3000);
 
 		try {
 			const arr = await webScrapeCourseCode("COP3503");
@@ -20,17 +20,20 @@ describe("scraper tests", async () => {
 			await webScrapeCourseCode("COP9999");
 		}
 		catch (e) {
+			s.end();
 			return;
 		}
 		expect(false).toEqual(true);
+
+		s.end();
 	});
 
 	it("scrapes n number correctly", async () => {
 		const s = await SqlServer.create({ user: "root", password: "toor" });
-		const w = WebServer.makeAppServer(s);
+		const w = new WebServer(s);
 
 		try {
-			const arr = await webScrapeNNumber("N01237497", "Liu");
+			const arr = await webScrapeNNumber("N01237497");
 			expect(arr.length).toBeGreaterThanOrEqual(10);
 		}
 		catch (e) {
@@ -38,11 +41,13 @@ describe("scraper tests", async () => {
 			expect(false).toEqual(true);
 		}
 		try {
-			await webScrapeNNumber("N99999999", "Liu");
+			await webScrapeNNumber("N99999999");
 		}
 		catch (e) {
 			return;
 		}
 		expect(false).toEqual(true);
+
+		s.end();
 	});
 });

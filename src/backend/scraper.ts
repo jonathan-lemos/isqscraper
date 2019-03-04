@@ -46,7 +46,7 @@ export const webScrapeCourseCode = async (coursecode: string) => new Promise<Scr
 	});
 });
 
-export const webScrapeNNumber = async (nNumber: string, lname: string) => new Promise<ScraperEntry[]>((resolve, reject) => {
+export const webScrapeNNumber = async (nNumber: string) => new Promise<ScraperEntry[]>((resolve, reject) => {
 	const url = `https://banner.unf.edu/pls/nfpo/wksfwbs.p_instructor_isq_grade?pv_instructor=${nNumber.toUpperCase()}`;
 	request(url, {}, (error, response, html) => {
 		if (error) {
@@ -54,11 +54,26 @@ export const webScrapeNNumber = async (nNumber: string, lname: string) => new Pr
 			return;
 		}
 		const $ = cheerio.load(html);
+
+		let lname: string;
+		try {
+			const elements = $("html > body > font > div.pagebodydiv > table.datadisplaytable > tbody > tr > td.dddefault")[2];
+			if (elements.children[0].data === undefined) {
+				throw new Error("Failed to find instructor name");
+			}
+			lname = elements.children[0].data.split(/\s+/)[1];
+		}
+		catch (e) {
+			reject(e.message);
+			return;
+		}
+
 		try {
 			const elements = $("html > body > font > div.pagebodydiv > table.datadisplaytable > tbody")[3]
 				.children.filter(c => c.type === "tag" && c.name === "tr");
 			if (elements == null) {
-				reject("Malformed webpage");
+				reject("Malformed response or invalid query");
+				return;
 			}
 			/*
 			console.log(
@@ -86,6 +101,7 @@ export const webScrapeNNumber = async (nNumber: string, lname: string) => new Pr
 		}
 		catch (e) {
 			reject(new Error(`Failed to parse: ${e.message}`));
+			return;
 		}
 	});
 });

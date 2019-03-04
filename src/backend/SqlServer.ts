@@ -9,7 +9,7 @@ export interface ScraperEntry {
 	year: number;
 }
 
-const isScraperEntry = (s: any): s is ScraperEntry => {
+export const isScraperEntry = (s: any): s is ScraperEntry => {
 	return Object.keys(s).includes("coursecode") &&
 	typeof s.coursecode === "string" &&
 	Object.keys(s).includes("crn") &&
@@ -30,7 +30,7 @@ export interface ProfessorEntry {
 	nnumber: string;
 }
 
-const isProfessorEntry = (s: any): s is ProfessorEntry => {
+export const isProfessorEntry = (s: any): s is ProfessorEntry => {
 	return Object.keys(s).includes("fname") &&
 	typeof s.fname === "string" &&
 	Object.keys(s).includes("lname") &&
@@ -39,7 +39,6 @@ const isProfessorEntry = (s: any): s is ProfessorEntry => {
 	typeof s.nnumber === "string";
 };
 
-const ISQSCRAPER_DB = "isqscraper";
 const ISQSCRAPER_ENTRIES_TABLE = "entries";
 const ISQSCRAPER_PROF_TABLE = "profs";
 
@@ -96,7 +95,7 @@ export default class SqlServer {
 	 *
 	 * @return A Promise that will contain a new SqlServer or an error (string) detailing what happened.
 	 */
-	public static async create({ host = "localhost", password = "", premade = false, port = 3306, user = "root" }): Promise<SqlServer> {
+	public static async create({ database = "isqscraper", host = "localhost", password = "", premade = false, port = 3306, user = "root" }): Promise<SqlServer> {
 		return new Promise<SqlServer>(async (resolve, reject) => {
 			// connection without database (in case the db does not exist yet)
 			const con1 = mysql.createConnection({
@@ -108,7 +107,7 @@ export default class SqlServer {
 
 			// connection with database
 			const con2 = mysql.createConnection({
-				database: ISQSCRAPER_DB,
+				database,
 				host,
 				password,
 				port,
@@ -129,7 +128,7 @@ export default class SqlServer {
 
 			// creates the database if it doesn't exist
 			const iCreateDb = (): Promise<void> => new Promise<void>((res, rej) => {
-				con1.query(`CREATE DATABASE IF NOT EXISTS ${ISQSCRAPER_DB};`, err => {
+				con1.query(`CREATE DATABASE IF NOT EXISTS ${database};`, err => {
 					if (err) {
 						rej(err.message);
 						return;
@@ -165,7 +164,7 @@ export default class SqlServer {
 					"crn INT NOT NULL," +
 					"isq DECIMAL(3,2) NOT NULL," +
 					"lname VARCHAR(255) NOT NULL," +
-					"term CHAR(16) NOT NULL," +
+					"term ENUM('Spring', 'Summer', 'Fall') NOT NULL," +
 					"year INT NOT NULL," +
 					"PRIMARY KEY (crn, term, year)," +
 					`FOREIGN KEY (lname) REFERENCES ${ISQSCRAPER_PROF_TABLE} (lname)` +
@@ -202,15 +201,17 @@ export default class SqlServer {
 				return;
 			}
 
-			resolve(new SqlServer(con2));
+			resolve(new SqlServer(con2, database));
 			return;
 		});
 	}
 
 	private con: mysql.Connection;
+	private dbName: string;
 
-	private constructor(con: mysql.Connection) {
+	private constructor(con: mysql.Connection, dbName: string) {
 		this.con = con;
+		this.dbName = dbName;
 	}
 
 	/**
@@ -218,7 +219,8 @@ export default class SqlServer {
 	 */
 	public async allEntries(): Promise<ScraperEntry[]> {
 		return new Promise<ScraperEntry[]>((resolve, reject) => {
-			const sql = `SELECT * FROM ${ISQSCRAPER_ENTRIES_TABLE}`;
+			const sql = `SELECT * FROM ${ISQSCRAPER_ENTRIES_TABLE} ` +
+			"ORDER BY year DESC, term DESC;";
 			this.con.query(sql, (err, results) => {
 				if (err) {
 					reject(err);
@@ -275,6 +277,20 @@ export default class SqlServer {
 					return;
 				}
 				resolve(result as Array<{fname: string, lname: string}>);
+			});
+		});
+	}
+
+	public async allNNumbers(): Promise<string[]> {
+		return new Promise<string[]>((resolve, reject) => {
+			const sql = `SELECT DISTINCT nnumber FROM ${ISQSCRAPER_PROF_TABLE};`;
+			this.con.query(sql, (err, result) => {
+				if (err) {
+					reject(err.message);
+					return;
+				}
+				resolve(result.map((s: { lname: string }) => s.lname));
+				return;
 			});
 		});
 	}
@@ -641,7 +657,7 @@ export default class SqlServer {
 	 */
 	public async nuke(): Promise<void> {
 		return new Promise<void>((resolve, reject) => {
-			const sql = `DROP DATABASE ${ISQSCRAPER_DB}`;
+			const sql = `DROP DATABASE ${this.dbName}`;
 			this.con.query(sql, err => {
 				if (err) {
 					reject(err);

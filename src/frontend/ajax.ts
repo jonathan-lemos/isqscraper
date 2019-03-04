@@ -1,244 +1,90 @@
 import $ from "jquery";
-import * as sets from "../backend/sets";
-import SqlServer, { ScraperEntry } from "../backend/SqlServer";
+import { isScraperEntry, ScraperEntry } from "../backend/SqlServer";
 
 const getHost = () => document.location.origin;
 
-export const ajaxCourseCode = (coursecode: string): { sql: Promise<ScraperEntry[]>, web: Promise<ScraperEntry[]> } => ({
-	sql: new Promise<ScraperEntry[]>((resolve, reject) => {
-		const url = `${getHost()}/api/allEntries`;
+async function ajaxGet<T>(url: string, isType: (a: any) => a is T) {
+	return new Promise<T>((resolve, reject) => {
 		$.ajax({
-			contentType: "application/json; charset=utf-8",
-			data: JSON.stringify({ str: coursecode }),
-			error: err => reject(new Error(err.toString())),
-			success: (result: ScraperEntry[]) => {
-				if (!Array.isArray(result)) {
-					reject(new Error((result as any).toString()));
+			error: reject,
+			success: (a: any) => {
+				if (!isType(a)) {
+					reject(a);
 					return;
 				}
-				resolve(result);
-				return;
-			},
-			type: "POST",
-			url,
-		});
-	}),
-	web: new Promise<ScraperEntry[]>((resolve, reject) => {
-		const url = `${getHost()}/api/scrape?coursecode=${coursecode}`;
-		$.ajax({
-			error: err => reject(new Error(err.toString())),
-			success: (result: ScraperEntry[]) => {
-				if (!Array.isArray(result)) {
-					reject(new Error(result as any).toString());
-					return;
-				}
-				resolve(result);
-				return;
+				resolve(a);
 			},
 			url,
 		});
-	}),
-});
+	});
+}
 
-export const ajaxNNumber = (nnumber: string, lname: string): { sql: Promise<ScraperEntry[]>, web: Promise<ScraperEntry[]> } => ({
-	sql: new Promise<ScraperEntry[]>((resolve, reject) => {
-		const url = `${getHost()}/api/getByNNumber`;
-		$.ajax({
-			contentType: "application/json; charset=utf-8",
-			data: JSON.stringify({ str: nnumber }),
-			error: err =>
-			reject(new Error(err.toString())),
-			success: (result: ScraperEntry[]) => {
-				if (!Array.isArray(result)) {
-					reject(new Error((result as any).toString()));
-					return;
-				}
-				resolve(result);
-				return;
-			},
-			type: "POST",
-			url,
-		});
-	}),
-	web: new Promise<ScraperEntry[]>((resolve, reject) => {
-		const url = `${getHost()}/api/scrape?nnumber=${nnumber.toUpperCase()}&lname=${lname}`;
-		$.ajax({
-			error: err =>
-			reject(new Error(err.toString())),
-			success: (result: ScraperEntry[]) => {
-				if (!Array.isArray(result)) {
-					reject(result);
-					return;
-				}
-				resolve(result);
-				return;
-			},
-			url,
-		});
-	}),
-});
+const isStringArray = (s: any): s is string[] => {
+	if (!Array.isArray(s)) {
+		return false;
+	}
+	for (const c in s) {
+		if (typeof c !== "string") {
+			return false;
+		}
+	}
+	return true;
+};
 
-const ajaxFullName = (fname: string, lname: string): { sql: Promise<ScraperEntry[]>, web: Promise<ScraperEntry[]> } => {
+const isScraperArray = (s: any): s is ScraperEntry[] => {
+	if (!Array.isArray(s)) {
+		return false;
+	}
+	for (const c in s) {
+		if (!isScraperEntry(c)) {
+			return false;
+		}
+	}
+	return true;
+};
+
+export const ajaxCourseCode = (coursecode: string): { sql: Promise<ScraperEntry[]>, web: Promise<ScraperEntry[]> } => {
+	const sqlUrl = `${getHost()}/api/select?coursecode=${coursecode.toUpperCase()}`;
+	const webUrl = `${getHost()}/api/scrape?coursecode=${coursecode.toUpperCase()}`;
 	return {
-		sql: new Promise<ScraperEntry[]>((resolve, reject) => {
-			const url = `${getHost()}/api/getByName`;
-			$.ajax({
-				contentType: "application/json; charset=utf-8",
-				data: JSON.stringify({ fname, lname }),
-				error: err => reject(new Error(err.toString())),
-				success: (result: ScraperEntry[]) => {
-					if (!Array.isArray(result)) {
-						reject(new Error((result as any).toString()));
-						return;
-					}
-					resolve(result);
-					return;
-				},
-				type: "POST",
-				url,
-			});
-		}),
-		web: new Promise<ScraperEntry[]>(async (resolve, reject) => {
-			const getNno = async (): Promise<string> => new Promise<string>((res, rej) => {
-				const urlNno = `${getHost()}/api/nameToNNumber`;
-				$.ajax({
-					contentType: "application/json; charset=utf-8",
-					data: JSON.stringify({ fname, lname }),
-					error: err => rej(new Error(err.toString())),
-					success: (result: string[]) => {
-						if (!Array.isArray(result)) {
-							rej(new Error((result as any).toString()));
-							return;
-						}
-						if (result.length === 0) {
-							res("");
-						}
-						res(result[0]);
-						return;
-					},
-					type: "POST",
-					url: urlNno,
-				});
-			});
-			return ajaxNNumber(await getNno(), lname).web;
-		}),
+		sql: ajaxGet(sqlUrl, isScraperArray),
+		web: ajaxGet(webUrl, isScraperArray),
 	};
 };
 
-const ajaxLastName = (lname: string): { sql: Promise<ScraperEntry[]>, web: Promise<ScraperEntry[]> } => {
+export const ajaxNNumber = (nnumber: string): { sql: Promise<ScraperEntry[]>, web: Promise<ScraperEntry[]> } => {
+	const sqlUrl = `${getHost()}/api/select?nnumber=${nnumber.toUpperCase()}`;
+	const webUrl = `${getHost()}/api/scrape?nnumber=${nnumber.toUpperCase()}`;
 	return {
-		sql: new Promise<ScraperEntry[]>((resolve, reject) => {
-			const url = `${getHost()}/api/getByLastName`;
-			$.ajax({
-				contentType: "application/json; charset=utf-8",
-				data: JSON.stringify({ str: lname }),
-				error: err =>
-					reject(new Error(err.toString())),
-				success: (result: ScraperEntry[]) => {
-					if (!Array.isArray(result)) {
-						reject(new Error((result as any).toString()));
-						return;
-					}
-					resolve(result);
-					return;
-				},
-				type: "POST",
-				url,
-			});
-		}),
-		web: new Promise<ScraperEntry[]>(async (resolve, reject) => {
-			const getNno = async (): Promise<string> => new Promise<string>((res, rej) => {
-				const urlNno = `${getHost()}/api/lnameToNNumber`;
-				$.ajax({
-					contentType: "application/json; charset=utf-8",
-					data: JSON.stringify({ str: lname }),
-					error:
-						err => rej(new Error(err.toString())),
-					success: (result: string[]) => {
-						if (!Array.isArray(result)) {
-							rej(new Error((result as any).toString()));
-							return;
-						}
-						if (result.length === 0) {
-							rej(new Error(`No N-number found matching last name ${lname}`));
-						}
-						res(result[0]);
-						return;
-					},
-					type: "POST",
-					url: urlNno,
-				});
-			});
-			return ajaxNNumber(await getNno(), lname).web;
-		}),
+		sql: ajaxGet(sqlUrl, isScraperArray),
+		web: ajaxGet(webUrl, isScraperArray),
 	};
 };
 
-const ajaxFirstName = (fname: string): { sql: Promise<ScraperEntry[]>, web: Promise<ScraperEntry[]> } => {
+export const ajaxFullName = (fname: string, lname: string): { sql: Promise<ScraperEntry[]>, web: Promise<ScraperEntry[]> } => {
+	const sqlUrl = `${getHost()}/api/select?fname=${fname}&lname=${lname}`;
+	const webUrl = `${getHost()}/api/scrape?fname=${fname}&lname=${lname}`;
 	return {
-		sql: new Promise<ScraperEntry[]>((resolve, reject) => {
-			const url = `${getHost()}/api/getByFirstName`;
-			$.ajax({
-				contentType: "application/json; charset=utf-8",
-				data: JSON.stringify({ str: fname }),
-				error: err => reject(new Error(err.toString())),
-				success: (result: ScraperEntry[]) => {
-					if (!Array.isArray(result)) {
-						reject(new Error((result as any).toString()));
-						return;
-					}
-					resolve(result);
-					return;
-				},
-				type: "POST",
-				url,
-			});
-		}),
-		web: new Promise<ScraperEntry[]>(async (resolve, reject) => {
-			const getNno = async (): Promise<string> => new Promise<string>((res, rej) => {
-				const urlNno = `${getHost()}/api/fnameToNNumber`;
-				$.ajax({
-					contentType: "application/json; charset=utf-8",
-					data: JSON.stringify({ str: fname }),
-					error: err => rej(new Error(err.toString())),
-					success: (result: string[]) => {
-						if (!Array.isArray(result)) {
-							rej(new Error((result as any).toString()));
-							return;
-						}
-						if (result.length === 0) {
-							res(`No n-number found matching ${fname}`);
-						}
-						res(result[0]);
-						return;
-					},
-					type: "POST",
-					url: urlNno,
-				});
-			});
-			const getLname = async (): Promise<string> => new Promise<string>((res, rej) => {
-				const urlNno = `${getHost()}/api/fnameToLname`;
-				$.ajax({
-					contentType: "application/json; charset=utf-8",
-					data: JSON.stringify({ str: fname }),
-					error: err => rej(new Error(err.toString())),
-					success: (result: string[]) => {
-						if (!Array.isArray(result)) {
-							rej(new Error((result as any).toString()));
-							return;
-						}
-						if (result.length === 0) {
-							res("");
-						}
-						res(result[0]);
-						return;
-					},
-					type: "POST",
-					url: urlNno,
-				});
-			});
-			resolve(await ajaxNNumber(await getNno(), await getLname()).web);
-		}),
+		sql: ajaxGet(sqlUrl, isScraperArray),
+		web: ajaxGet(webUrl, isScraperArray),
+	};
+};
+
+export const ajaxLastName = (lname: string): { sql: Promise<ScraperEntry[]>, web: Promise<ScraperEntry[]> } => {
+	const sqlUrl = `${getHost()}/api/select?lname=${lname}`;
+	const webUrl = `${getHost()}/api/scrape?lname=${lname}`;
+	return {
+		sql: ajaxGet(sqlUrl, isScraperArray),
+		web: ajaxGet(webUrl, isScraperArray),
+	};
+};
+
+export const ajaxFirstName = (fname: string): { sql: Promise<ScraperEntry[]>, web: Promise<ScraperEntry[]> } => {
+	const sqlUrl = `${getHost()}/api/select?fname=${fname}`;
+	const webUrl = `${getHost()}/api/scrape?fname=${fname}`;
+	return {
+		sql: ajaxGet(sqlUrl, isScraperArray),
+		web: ajaxGet(webUrl, isScraperArray),
 	};
 };
 
@@ -255,10 +101,4 @@ export const ajaxName = ({ fname = "", lname = "" }): { sql: Promise<ScraperEntr
 	else {
 		return ajaxLastName(lname);
 	}
-};
-
-export const updateSql = async (results: ScraperEntry[], con: SqlServer): Promise<void> => {
-	const d = sets.diff(results, await con.allEntries());
-	con.insert(d.a);
-	con.delete(d.b);
 };
