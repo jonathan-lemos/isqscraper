@@ -20,12 +20,9 @@ describe("scraper tests", async () => {
 			await webScrapeCourseCode("COP9999");
 		}
 		catch (e) {
-			s.end();
 			return;
 		}
 		expect(false).toEqual(true);
-
-		s.end();
 	});
 
 	it("scrapes n number correctly", async () => {
@@ -47,7 +44,5 @@ describe("scraper tests", async () => {
 			return;
 		}
 		expect(false).toEqual(true);
-
-		s.end();
 	});
 });
