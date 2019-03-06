@@ -17,8 +17,8 @@ const main = async () => {
 		await sqlServer.insertProfessorsFromCsv(csv);
 	}
 
-	const webServer = new WebServer(sqlServer, settings.webPort);
-	webServer.listen().then(() => console.log(`Express web server listening on port ${settings.webPort}`));
+	const webServer = new WebServer(sqlServer, settings.webPort, settings.webBaseDir, settings.webBaseFile);
+	webServer.listen().then(() => console.log(`Express web server listening on port ${settings.webPort} from "${settings.webBaseDir}"`));
 };
 
 main();

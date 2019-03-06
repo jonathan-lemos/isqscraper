@@ -1,6 +1,6 @@
 import cheerio from "cheerio";
 import request from "request";
-import { ScraperEntry } from "./SqlServer";
+import { ScraperEntry } from "../dbentries";
 
 export const webScrapeCourseCode = async (coursecode: string) => new Promise<ScraperEntry[]>((resolve, reject) => {
 	const url = `https://banner.unf.edu/pls/nfpo/wksfwbs.p_course_isq_grade?pv_course_id=${coursecode}`;

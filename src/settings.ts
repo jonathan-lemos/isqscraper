@@ -1,5 +1,6 @@
-import $ from "jquery";
 import path from "path";
+
+const extendReadOnly = (a: any, b: any) => Object.freeze(Object.assign(Object.assign({}, a), b));
 
 export interface Settings {
 	professorCsvPath: string;
@@ -27,17 +28,17 @@ export const defaultSettings: Settings = Object.freeze({
 	webPort: 80,
 });
 
-export const debugSettings: Settings = Object.freeze($.extend(defaultSettings, {
-	professorCsvPath: path.join(__dirname, "../../professors.csv"),
+export const debugSettings: Settings = extendReadOnly(defaultSettings, {
+	professorCsvPath: path.join(__dirname, "../professors.csv"),
 	sqlDbName: "isqscraper_dbg",
 	sqlPassword: "toor",
 	sqlUser: "root",
-	webBaseDir: path.join(__dirname, "../../site"),
+	webBaseDir: path.join(__dirname, "../site"),
 	webPort: 3000,
-}));
+});
 
-export const releaseSettings: Settings = Object.freeze($.extend(defaultSettings, {
+export const releaseSettings: Settings = extendReadOnly(defaultSettings, {
 	sqlPassword: "toor",
 	sqlUser: "root",
-}));
-export default releaseSettings;
+});
+export default debugSettings;

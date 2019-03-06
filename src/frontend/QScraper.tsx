@@ -1,6 +1,6 @@
 import React from "react";
 import { dedupe } from "../backend/sets";
-import { ScraperEntry } from "../backend/SqlServer";
+import { ScraperEntry } from "../dbentries";
 import { ajaxCourseCode, ajaxName } from "./ajax";
 import { ActiveType } from "./QApp";
 import QNavbar, { QNavbarEntry } from "./QNavbar";

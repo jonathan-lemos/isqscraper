@@ -9,11 +9,9 @@ describe("scraper tests", async () => {
 
 		try {
 			const arr = await webScrapeCourseCode("COP3503");
-			console.log(arr);
 			expect(arr.length).toBeGreaterThanOrEqual(10);
 		}
 		catch (e) {
-			console.log(e);
 			expect(false).toEqual(true);
 		}
 		try {
@@ -34,7 +32,6 @@ describe("scraper tests", async () => {
 			expect(arr.length).toBeGreaterThanOrEqual(10);
 		}
 		catch (e) {
-			console.log(e);
 			expect(false).toEqual(true);
 		}
 		try {

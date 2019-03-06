@@ -1,5 +1,5 @@
 import $ from "jquery";
-import { isScraperEntry, ScraperEntry } from "../backend/SqlServer";
+import { isScraperEntry, ScraperEntry } from "../dbentries";
 
 const getHost = () => document.location.origin;
 
@@ -23,7 +23,7 @@ const isStringArray = (s: any): s is string[] => {
 	if (!Array.isArray(s)) {
 		return false;
 	}
-	for (const c in s) {
+	for (const c of s) {
 		if (typeof c !== "string") {
 			return false;
 		}
@@ -35,7 +35,7 @@ const isScraperArray = (s: any): s is ScraperEntry[] => {
 	if (!Array.isArray(s)) {
 		return false;
 	}
-	for (const c in s) {
+	for (const c of s) {
 		if (!isScraperEntry(c)) {
 			return false;
 		}

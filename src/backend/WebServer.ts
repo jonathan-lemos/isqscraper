@@ -2,14 +2,15 @@ import cors from "cors";
 import express from "express";
 import http from "http";
 import path from "path";
+import { ScraperEntry } from "../dbentries";
 import { webScrapeCourseCode, webScrapeNNumber } from "./scraper";
 import { diff } from "./sets";
-import SqlServer, { ScraperEntry } from "./SqlServer";
+import SqlServer from "./SqlServer";
 
-const updateSqlServer = async (con: SqlServer, entries: ScraperEntry[]): Promise<void> => {
-	const d = diff(entries, await con.allEntries());
-	con.delete(d.b);
+const updateSqlServer = async (con: SqlServer, webEntries: ScraperEntry[], sqlEntries: ScraperEntry[]): Promise<void> => {
+	const d = diff(webEntries, sqlEntries);
 	con.insert(d.a);
+	con.delete(d.b);
 };
 
 export default class WebServer {
@@ -131,7 +132,7 @@ lname - Last name
 				let arr: ScraperEntry[];
 				try {
 					arr = await webScrapeCourseCode(req.query.coursecode);
-					updateSqlServer(con, arr);
+					updateSqlServer(con, arr, await con.getByCourseCode(req.query.coursecode));
 					res.json(arr);
 					return;
 				}
@@ -140,11 +141,59 @@ lname - Last name
 					return;
 				}
 			}
-			else if (req.query.nnumber !== undefined && req.query.lname !== undefined) {
+			if (req.query.fname !== undefined && req.query.lname !== undefined) {
+				try {
+					const nNumbers = await con.nameToNNumber(req.query.fname, req.query.lname);
+					let arr: ScraperEntry[] = [];
+					nNumbers.forEach(async x => {
+						arr = arr.concat(await webScrapeNNumber(x));
+						updateSqlServer(con, arr, await con.getByNNumber(x));
+					});
+					res.json(arr);
+					return;
+				}
+				catch (e) {
+					WebServer.sendError(res, `Failed to retrieve n numbers: "${e.message}"`);
+					return;
+				}
+			}
+			else if (req.query.fname !== undefined) {
+				try {
+					const nNumbers = await con.fnameToNNumber(req.query.fname);
+					let arr: ScraperEntry[] = [];
+					nNumbers.forEach(async x => {
+						arr = arr.concat(await webScrapeNNumber(x));
+						updateSqlServer(con, arr, await con.getByNNumber(x));
+					});
+					res.json(arr);
+					return;
+				}
+				catch (e) {
+					WebServer.sendError(res, `Failed to retrieve n numbers: "${e.message}"`);
+					return;
+				}
+			}
+			else if (req.query.lname !== undefined) {
+				try {
+					const nNumbers = await con.fnameToNNumber(req.query.lname);
+					let arr: ScraperEntry[] = [];
+					nNumbers.forEach(async x => {
+						arr = arr.concat(await webScrapeNNumber(x));
+						updateSqlServer(con, arr, await con.getByNNumber(x));
+					});
+					res.json(arr);
+					return;
+				}
+				catch (e) {
+					WebServer.sendError(res, `Failed to retrieve n numbers: "${e.message}"`);
+					return;
+				}
+			}
+			else if (req.query.nnumber !== undefined) {
 				let arr: ScraperEntry[];
 				try {
 					arr = await webScrapeNNumber(req.query.nnumber);
-					updateSqlServer(con, arr);
+					updateSqlServer(con, arr, await con.getByNNumber(req.query.nnumber));
 					res.json(arr);
 					return;
 				}
