@@ -8,6 +8,18 @@ Before attempting to use `isqscraper`, you will need the following dependencies:
 * Node.js
 * MySQL Server
 
+### professors.csv
+A list of professors will need to be provided to the ISQ scraper.
+They should have the following format:
+```
+nnumber,fname,lname
+N00000001,Egg,Man
+N01234567,John,Doe
+N76543210,Sandy,Red-ferrari
+...
+```
+Put it in the root of the project in a file called `professors.csv`
+
 ### Building
 Before anything else, make sure the MySQL server is running.
 By default, `isqscraper` binds to a MySQL server on port 3306 with the login `root:toor`.

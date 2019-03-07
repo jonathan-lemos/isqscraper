@@ -29,11 +29,9 @@ export const defaultSettings: Settings = Object.freeze({
 });
 
 export const debugSettings: Settings = extendReadOnly(defaultSettings, {
-	professorCsvPath: path.join(__dirname, "../professors.csv"),
 	sqlDbName: "isqscraper_dbg",
 	sqlPassword: "toor",
 	sqlUser: "root",
-	webBaseDir: path.join(__dirname, "../site"),
 	webPort: 3000,
 });
 

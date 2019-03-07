@@ -43,62 +43,62 @@ const isScraperArray = (s: any): s is ScraperEntry[] => {
 	return true;
 };
 
-export const ajaxCourseCode = (coursecode: string): { sql: Promise<ScraperEntry[]>, web: Promise<ScraperEntry[]> } => {
-	const sqlUrl = `${getHost()}/api/select?coursecode=${coursecode.toUpperCase()}`;
-	const webUrl = `${getHost()}/api/scrape?coursecode=${coursecode.toUpperCase()}`;
+export const ajaxCourseCode = (coursecode: string, origin: string = getHost()): { sql: Promise<ScraperEntry[]>, web: Promise<ScraperEntry[]> } => {
+	const sqlUrl = `${origin}/api/select?coursecode=${coursecode.toUpperCase()}`;
+	const webUrl = `${origin}/api/scrape?coursecode=${coursecode.toUpperCase()}`;
 	return {
 		sql: ajaxGet(sqlUrl, isScraperArray),
 		web: ajaxGet(webUrl, isScraperArray),
 	};
 };
 
-export const ajaxNNumber = (nnumber: string): { sql: Promise<ScraperEntry[]>, web: Promise<ScraperEntry[]> } => {
-	const sqlUrl = `${getHost()}/api/select?nnumber=${nnumber.toUpperCase()}`;
-	const webUrl = `${getHost()}/api/scrape?nnumber=${nnumber.toUpperCase()}`;
+export const ajaxNNumber = (nnumber: string, origin: string = getHost()): { sql: Promise<ScraperEntry[]>, web: Promise<ScraperEntry[]> } => {
+	const sqlUrl = `${origin}/api/select?nnumber=${nnumber.toUpperCase()}`;
+	const webUrl = `${origin}/api/scrape?nnumber=${nnumber.toUpperCase()}`;
 	return {
 		sql: ajaxGet(sqlUrl, isScraperArray),
 		web: ajaxGet(webUrl, isScraperArray),
 	};
 };
 
-export const ajaxFullName = (fname: string, lname: string): { sql: Promise<ScraperEntry[]>, web: Promise<ScraperEntry[]> } => {
-	const sqlUrl = `${getHost()}/api/select?fname=${fname}&lname=${lname}`;
-	const webUrl = `${getHost()}/api/scrape?fname=${fname}&lname=${lname}`;
+export const ajaxFullName = (fname: string, lname: string, origin: string = getHost()): { sql: Promise<ScraperEntry[]>, web: Promise<ScraperEntry[]> } => {
+	const sqlUrl = `${origin}/api/select?fname=${fname}&lname=${lname}`;
+	const webUrl = `${origin}/api/scrape?fname=${fname}&lname=${lname}`;
 	return {
 		sql: ajaxGet(sqlUrl, isScraperArray),
 		web: ajaxGet(webUrl, isScraperArray),
 	};
 };
 
-export const ajaxLastName = (lname: string): { sql: Promise<ScraperEntry[]>, web: Promise<ScraperEntry[]> } => {
-	const sqlUrl = `${getHost()}/api/select?lname=${lname}`;
-	const webUrl = `${getHost()}/api/scrape?lname=${lname}`;
+export const ajaxLastName = (lname: string, origin: string = getHost()): { sql: Promise<ScraperEntry[]>, web: Promise<ScraperEntry[]> } => {
+	const sqlUrl = `${origin}/api/select?lname=${lname}`;
+	const webUrl = `${origin}/api/scrape?lname=${lname}`;
 	return {
 		sql: ajaxGet(sqlUrl, isScraperArray),
 		web: ajaxGet(webUrl, isScraperArray),
 	};
 };
 
-export const ajaxFirstName = (fname: string): { sql: Promise<ScraperEntry[]>, web: Promise<ScraperEntry[]> } => {
-	const sqlUrl = `${getHost()}/api/select?fname=${fname}`;
-	const webUrl = `${getHost()}/api/scrape?fname=${fname}`;
+export const ajaxFirstName = (fname: string, origin: string = getHost()): { sql: Promise<ScraperEntry[]>, web: Promise<ScraperEntry[]> } => {
+	const sqlUrl = `${origin}/api/select?fname=${fname}`;
+	const webUrl = `${origin}/api/scrape?fname=${fname}`;
 	return {
 		sql: ajaxGet(sqlUrl, isScraperArray),
 		web: ajaxGet(webUrl, isScraperArray),
 	};
 };
 
-export const ajaxName = ({ fname = "", lname = "" }): { sql: Promise<ScraperEntry[]>, web: Promise<ScraperEntry[]> } => {
+export const ajaxName = ({ fname = "", lname = "" }, origin: string = getHost()): { sql: Promise<ScraperEntry[]>, web: Promise<ScraperEntry[]> } => {
 	if (fname === "" && lname === "") {
 		return { sql: Promise.resolve([]), web: Promise.resolve([]) };
 	}
 	else if (fname !== "" && lname !== "") {
-		return ajaxFullName(fname, lname);
+		return ajaxFullName(fname, lname, origin);
 	}
 	else if (fname !== "") {
-		return ajaxFirstName(fname);
+		return ajaxFirstName(fname, origin);
 	}
 	else {
-		return ajaxLastName(lname);
+		return ajaxLastName(lname, origin);
 	}
 };

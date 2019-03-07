@@ -7,10 +7,9 @@ import { webScrapeCourseCode, webScrapeNNumber } from "./scraper";
 import { diff } from "./sets";
 import SqlServer from "./SqlServer";
 
-const updateSqlServer = async (con: SqlServer, webEntries: ScraperEntry[], sqlEntries: ScraperEntry[]): Promise<void> => {
+export const updateSqlServer = async (con: SqlServer, webEntries: ScraperEntry[], sqlEntries: ScraperEntry[]): Promise<void> => {
 	const d = diff(webEntries, sqlEntries);
-	con.insert(d.a);
-	con.delete(d.b);
+	await Promise.all([con.insert(d.a), con.delete(d.b)]);
 };
 
 export default class WebServer {
@@ -145,10 +144,10 @@ lname - Last name
 				try {
 					const nNumbers = await con.nameToNNumber(req.query.fname, req.query.lname);
 					let arr: ScraperEntry[] = [];
-					nNumbers.forEach(async x => {
+					for (const x of nNumbers) {
 						arr = arr.concat(await webScrapeNNumber(x));
 						updateSqlServer(con, arr, await con.getByNNumber(x));
-					});
+					}
 					res.json(arr);
 					return;
 				}
@@ -161,10 +160,10 @@ lname - Last name
 				try {
 					const nNumbers = await con.fnameToNNumber(req.query.fname);
 					let arr: ScraperEntry[] = [];
-					nNumbers.forEach(async x => {
+					for (const x of nNumbers) {
 						arr = arr.concat(await webScrapeNNumber(x));
 						updateSqlServer(con, arr, await con.getByNNumber(x));
-					});
+					}
 					res.json(arr);
 					return;
 				}
@@ -175,12 +174,12 @@ lname - Last name
 			}
 			else if (req.query.lname !== undefined) {
 				try {
-					const nNumbers = await con.fnameToNNumber(req.query.lname);
+					const nNumbers = await con.lnameToNNumber(req.query.lname);
 					let arr: ScraperEntry[] = [];
-					nNumbers.forEach(async x => {
+					for (const x of nNumbers) {
 						arr = arr.concat(await webScrapeNNumber(x));
 						updateSqlServer(con, arr, await con.getByNNumber(x));
-					});
+					}
 					res.json(arr);
 					return;
 				}
