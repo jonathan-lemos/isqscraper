@@ -1,17 +1,37 @@
+import fs from "fs";
 import * as sets from "../../src/backend/sets";
 import SqlServer from "../../src/backend/SqlServer";
 import WebServer, { updateSqlServer } from "../../src/backend/WebServer";
 import * as ajax from "../../src/frontend/ajax";
+import { debugSettings } from "../../src/settings";
 
 let ws: WebServer | undefined;
+let sq: SqlServer | undefined;
+
+const sqlLoginInfo = Object.freeze({
+	database: debugSettings.sqlDbName,
+	password: debugSettings.sqlPassword,
+	user: debugSettings.sqlUser,
+});
+
+const getServerCon = async (): Promise<SqlServer> => {
+	if (sq !== undefined) {
+		return sq;
+	}
+	const q = await SqlServer.create(sqlLoginInfo);
+	q.nuke();
+	const r = await SqlServer.create(sqlLoginInfo);
+	const csv = fs.readFileSync(debugSettings.professorCsvPath).toString().split("\n");
+	await r.insertProfessorsFromCsv(csv);
+	sq = r;
+	return r;
+};
+
 const makeServer = async (): Promise<WebServer> => {
 	if (ws !== undefined) {
 		return ws;
 	}
-	const con1 = await SqlServer.create({ database: "isqscraper_test", user: "root", password: "toor" });
-	con1.nuke();
-	const con2 = await SqlServer.create({ database: "isqscraper_test", user: "root", password: "toor" });
-	const w = new WebServer(con2, 3000);
+	const w = new WebServer(await getServerCon(), 3000);
 	await w.listen();
 	ws = w;
 	return w;
@@ -25,7 +45,7 @@ describe("WebServer tests", () => {
 	});
 
 	it("updates sql server correctly", async () => {
-		const con = await SqlServer.create({ database: "sql_update_test", user: "root", password: "toor" });
+		const con = await SqlServer.create({ database: "isqscraper_sql_update_test", user: sqlLoginInfo.user, password: sqlLoginInfo.password });
 		const profs = [
 			{ fname: "redferrari", lname: "sandy", nnumber: "n01234567" },
 			{ fname: "faze", lname: "painman", nnumber: "n22222222" },
@@ -46,6 +66,7 @@ describe("WebServer tests", () => {
 		expect(sets.equivalent(await con.allEntries(), [entry])).toEqual(true);
 		await updateSqlServer(con, arr, []);
 		expect(sets.equivalent(await con.allEntries(), arr.concat(entry))).toEqual(true);
+		con.nuke();
 	});
 
 	it("responds to ajax coursecode", () => {

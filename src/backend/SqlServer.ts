@@ -477,7 +477,7 @@ export default class SqlServer {
 			`FROM ${ISQSCRAPER_ENTRIES_TABLE}, ${ISQSCRAPER_PROF_TABLE} ` +
 			`WHERE ${ISQSCRAPER_PROF_TABLE}.nnumber=? AND ` +
 			`${ISQSCRAPER_ENTRIES_TABLE}.lname=${ISQSCRAPER_PROF_TABLE}.lname;`;
-			this.con.query(sql, [nnumber], (err, result) => {
+			this.con.query(sql, [nnumber.toUpperCase()], (err, result) => {
 				if (err) {
 					reject(err.message);
 					return;

@@ -222,7 +222,7 @@ lname - Last name
 					a = await this.con.getByFirstName(req.query.fname);
 				}
 				else if (req.query.nnumber !== undefined) {
-					a = await this.con.getByFirstName(req.query.fname);
+					a = await this.con.getByNNumber(req.query.nnumber);
 				}
 				else if (req.query.coursecode !== undefined) {
 					a = await this.con.getByCourseCode(req.query.coursecode);
