@@ -69,7 +69,7 @@ describe("WebServer tests", () => {
 		con.nuke();
 	});
 
-	it("responds to ajax coursecode", () => {
+	it("responds to ajax coursecode", async () => {
 		return makeServer().then(async () => {
 			const promises1 = ajax.ajaxCourseCode("COP3503", origin);
 			const res1 = { sql: await promises1.sql, web: await promises1.web };
@@ -81,7 +81,7 @@ describe("WebServer tests", () => {
 		});
 	});
 
-	it("responds to ajax nnumber", () => {
+	it("responds to ajax nnumber", async () => {
 		return makeServer().then(async () => {
 			const promises1 = ajax.ajaxNNumber("N01237497", origin);
 			const res1 = { sql: await promises1.sql, web: await promises1.web };
@@ -117,7 +117,7 @@ describe("WebServer tests", () => {
 		});
 	});
 
-	it("responds to ajax firstname", () => {
+	it("responds to ajax firstname", async () => {
 		return makeServer().then(async () => {
 			const promises1 = ajax.ajaxFirstName("Sandeep", origin);
 			const res1 = { sql: await promises1.sql, web: await promises1.web };
