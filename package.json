@@ -20,10 +20,10 @@
   "homepage": "https://github.com/jonathan-lemos/isqscraper#readme",
   "devDependencies": {
     "@types/chai": "^4.1.7",
-    "@types/jest": "^24.0.6",
+    "@types/jest": "^24.0.11",
     "@types/mocha": "^5.2.5",
-    "eslint": "^5.14.0",
-    "jest": "^24.1.0",
+    "eslint": "^5.15.1",
+    "jest": "^24.3.1",
     "ts-jest": "^24.0.0",
     "ts-loader": "^5.3.3",
     "ts-node": "^7.0.1",
@@ -33,14 +33,14 @@
     "webpack-cli": "^3.2.3"
   },
   "dependencies": {
-    "@types/cheerio": "^0.22.10",
+    "@types/cheerio": "^0.22.11",
     "@types/cors": "^2.8.4",
     "@types/deep-equal": "^1.0.1",
     "@types/express": "^4.16.1",
     "@types/jquery": "^3.3.29",
     "@types/mysql": "^2.15.5",
-    "@types/node": "^10.12.12",
-    "@types/react": "^16.7.13",
+    "@types/node": "^10.12.30",
+    "@types/react": "^16.8.7",
     "@types/react-dom": "^16.0.11",
     "@types/reactstrap": "^6.4.3",
     "@types/request": "^2.48.1",
@@ -50,8 +50,8 @@
     "express": "^4.16.4",
     "jquery": "^3.3.1",
     "mysql": "^2.16.0",
-    "react": "^16.8.2",
-    "react-dom": "^16.6.3",
+    "react": "^16.8.4",
+    "react-dom": "^16.8.4",
     "reactstrap": "^6.5.0",
     "request": "^2.88.0"
   }
